@@ -180,6 +180,11 @@
       .modal-close-btn:hover {
         color: #1e293b;
       }
+
+      /* Estilos para ordenação de tabela */
+      th.sortable { cursor: pointer; }
+      th.sorted-asc::after { content: ' \25B2'; }
+      th.sorted-desc::after { content: ' \25BC'; }
     </style>
   </head>
   <body class="bg-gray-100 p-4 sm:p-6 md:p-8">
@@ -315,20 +320,20 @@
           <table class="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
-                <th class="px-6 py-3">Status</th>
-                <th class="px-6 py-3">Sistema</th>
-                <th class="px-6 py-3">Núm.PAE/SAJ</th>
-                <th class="px-6 py-3">Interessado</th>
-                <th class="px-6 py-3">Entrada</th>
-                <th class="px-6 py-3">Situação</th>
-                <th class="px-6 py-3">Assimetria</th>
+                <th class="px-6 py-3 sortable" data-field="status">Status</th>
+                <th class="px-6 py-3 sortable" data-field="sistema">Sistema</th>
+                <th class="px-6 py-3 sortable" data-field="numPaejSaj">Núm.PAE/SAJ</th>
+                <th class="px-6 py-3 sortable" data-field="interessado">Interessado</th>
+                <th class="px-6 py-3 sortable" data-field="entrada">Entrada</th>
+                <th class="px-6 py-3 sortable" data-field="situacao">Situação</th>
+                <th class="px-6 py-3 sortable" data-field="assimetria">Assimetria</th>
                 <th class="px-6 py-3">Observação</th>
-                <th class="px-6 py-3">UG Origem</th>
-                <th class="px-6 py-3">Assunto</th>
-                <th class="px-6 py-3">Sub Assunto</th>
-                <th class="px-6 py-3">ACI Responsável</th>
-                <th class="px-6 py-3">Destino</th>
-                <th class="px-6 py-3">Saída</th>
+                <th class="px-6 py-3 sortable" data-field="ugOrigem">UG Origem</th>
+                <th class="px-6 py-3 sortable" data-field="assunto">Assunto</th>
+                <th class="px-6 py-3 sortable" data-field="subAssunto">Sub Assunto</th>
+                <th class="px-6 py-3 sortable" data-field="aciResponsavel">ACI Responsável</th>
+                <th class="px-6 py-3 sortable" data-field="destino">Destino</th>
+                <th class="px-6 py-3 sortable" data-field="saida">Saída</th>
                 <th class="px-6 py-3">Ações</th>
               </tr>
             </thead>
@@ -895,75 +900,9 @@
             totalPages = Math.ceil(totalRecords / pageSize);
             if (totalPages === 0) totalPages = 1;
 
-            dataTableBody.innerHTML = ''; // Limpa o conteúdo atual da tabela
+            // renderiza as linhas da tabela
+            renderTableRows();
 
-            if (currentTableData && currentTableData.length > 0) {
-              currentTableData.forEach(function(linha, index) {
-                const row = dataTableBody.insertRow();
-                const actualSheetRowIndex = ((currentPage - 1) * pageSize) + index + 2;
-                linha.forEach(function(celula, cellIndex) {
-                  const cell = row.insertCell();
-                  // Mapeamento dos índices das colunas para os nomes dos campos (para formatação condicional)
-                  const columnIndexToFieldName = [
-                      'status', 'sistema', 'numPaejSaj', 'interessado', 'entrada', 'situacao',
-                      'assimetria', 'observacao', 'ugOrigem', 'assunto', 'subAssunto',
-                      'aciResponsavel', 'destino', 'saida'
-                  ];
-                  const fieldName = columnIndexToFieldName[cellIndex];
-
-                  // Formata a data/hora se for uma string ISO 8601 e for o campo 'saida' ou 'entrada'
-                  if (typeof celula === 'string' && celula.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/) && 
-                      (fieldName === 'saida' || fieldName === 'entrada')) {
-                    try {
-                      // Usa toLocaleDateString para formato dd/mm/aaaa
-                      cell.textContent = new Date(celula).toLocaleDateString('pt-BR');
-                    } catch (e) {
-                      cell.textContent = celula; // Em caso de erro na data, exibe como está
-                    }
-                  } else {
-                    cell.textContent = celula;
-                  }
-                });
-
-                // Adiciona a célula de ações com os botões Editar e Deletar
-                const actionCell = row.insertCell();
-                const editButton = document.createElement('button');
-                editButton.textContent = 'Editar';
-                editButton.classList.add('btn', 'btn-secondary', 'text-sm', 'px-3', 'py-1', 'mr-2');
-                editButton.onclick = function() {
-                  openRecordModal('edit', actualSheetRowIndex, linha);
-                };
-                actionCell.appendChild(editButton);
-                // Botão Deletar
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Deletar';
-                deleteButton.classList.add('btn', 'btn-danger', 'text-sm', 'px-3', 'py-1');
-                deleteButton.onclick = function() {
-                  if (confirm('Tem certeza que deseja deletar este registro?')) {
-                    google.script.run
-                      .withSuccessHandler(function(response) {
-                        if (response.sucesso) {
-                          showMessage('readMessage', response.mensagem, 'success');
-                          lerDadosExistentes();
-                          lerDadosDashboard();
-                        } else {
-                          showMessage('readMessage', response.mensagem, 'error');
-                        }
-                      })
-                      .withFailureHandler(function(error) {
-                        showMessage('readMessage', 'Erro ao deletar registro: ' + error.message, 'error');
-                      })
-                      .deletarRegistroWeb(actualSheetRowIndex);
-                  }
-                };
-                actionCell.appendChild(deleteButton);
-              });
-              showMessage('readMessage', `Foram carregados ${currentTableData.length} registros da página ${currentPage}. Total: ${totalRecords} registros.`, 'success');
-            } else {
-              // Colspan ajustado para 15
-              dataTableBody.innerHTML = '<tr><td colspan="15" class="text-center py-4 text-gray-500">Nenhum dado encontrado na página atual ou com os filtros aplicados.</td></tr>';
-              showMessage('readMessage', 'Nenhum dado encontrado na página atual ou com os filtros aplicados.', 'info');
-            }
             updatePaginationControls();
           })
           .withFailureHandler(function(error) {
@@ -1071,11 +1010,111 @@
           .getUserEmail();
       }
 
+      // 1. Adicionar atributos de ordenação aos <th> da tabela:
+      // Exemplo: <th class="sortable" data-field="status">Status</th>
+      // ... para todos os cabeçalhos ...
+
+      // 3. Adicionar variáveis de controle de ordenação:
+      let currentSortField = null;
+      let currentSortDirection = 'asc';
+
+      // 4. Função para ordenar os dados:
+      function sortTableData(field) {
+        if (currentSortField === field) {
+          currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          currentSortField = field;
+          currentSortDirection = 'asc';
+        }
+        currentTableData.sort((a, b) => {
+          const idx = sheetColumnIndexes[field];
+          let valA = a[idx];
+          let valB = b[idx];
+          // Tenta converter para data se for campo de data
+          if (field === 'entrada' || field === 'saida') {
+            valA = valA.split('/').reverse().join('-');
+            valB = valB.split('/').reverse().join('-');
+          }
+          if (valA < valB) return currentSortDirection === 'asc' ? -1 : 1;
+          if (valA > valB) return currentSortDirection === 'asc' ? 1 : -1;
+          return 0;
+        });
+        renderTableRows();
+        updateSortIndicators();
+      }
+
+      // 5. Função para renderizar as linhas da tabela (extraída de lerDadosExistentes):
+      function renderTableRows() {
+        const dataTableBody = document.getElementById('dataTableBody');
+        dataTableBody.innerHTML = '';
+        if (currentTableData && currentTableData.length > 0) {
+          currentTableData.forEach(function(linha, index) {
+            const row = dataTableBody.insertRow();
+            const actualSheetRowIndex = ((currentPage - 1) * pageSize) + index + 2;
+            linha.forEach(function(celula) {
+              const cell = row.insertCell();
+              cell.textContent = celula;
+            });
+            // Adiciona a célula de ações com os botões Editar e Deletar
+            const actionCell = row.insertCell();
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Editar';
+            editButton.classList.add('btn', 'btn-secondary', 'text-sm', 'px-3', 'py-1', 'mr-2');
+            editButton.onclick = function() {
+              openRecordModal('edit', actualSheetRowIndex, linha);
+            };
+            actionCell.appendChild(editButton);
+            // Botão Deletar
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Deletar';
+            deleteButton.classList.add('btn', 'btn-danger', 'text-sm', 'px-3', 'py-1');
+            deleteButton.onclick = function() {
+              if (confirm('Tem certeza que deseja deletar este registro?')) {
+                google.script.run
+                  .withSuccessHandler(function(response) {
+                    if (response.sucesso) {
+                      showMessage('readMessage', response.mensagem, 'success');
+                      lerDadosExistentes();
+                      lerDadosDashboard();
+                    } else {
+                      showMessage('readMessage', response.mensagem, 'error');
+                    }
+                  })
+                  .withFailureHandler(function(error) {
+                    showMessage('readMessage', 'Erro ao deletar registro: ' + error.message, 'error');
+                  })
+                  .deletarRegistroWeb(actualSheetRowIndex);
+              }
+            };
+            actionCell.appendChild(deleteButton);
+          });
+        } else {
+          dataTableBody.innerHTML = '<tr><td colspan="15" class="text-center py-4 text-gray-500">Nenhum dado encontrado na página atual ou com os filtros aplicados.</td></tr>';
+        }
+      }
+
+      // 6. Atualizar indicadores visuais de ordenação:
+      function updateSortIndicators() {
+        document.querySelectorAll('th.sortable').forEach(th => {
+          th.classList.remove('sorted-asc', 'sorted-desc');
+          if (th.dataset.field === currentSortField) {
+            th.classList.add(currentSortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+          }
+        });
+      }
+
       document.addEventListener('DOMContentLoaded', function() {
         lerDadosExistentes();
         lerDadosDashboard();
         loadAssuntoSubAssuntoMap();
         displayUserEmail(); // Chama a função para exibir o e-mail do usuário
+
+        // 7. Adicionar listeners aos cabeçalhos após DOMContentLoaded:
+        document.querySelectorAll('th.sortable').forEach(th => {
+          th.addEventListener('click', function() {
+            sortTableData(th.dataset.field);
+          });
+        });
       });
     </script>
   </body>
