@@ -117,12 +117,12 @@ function gravarDadosWeb(dados) {
   try {
     var planilha = SpreadsheetApp.getActiveSpreadsheet();
     Logger.log('Tentando obter a aba com o nome: Dados para gravação.');
-    var aba = planilha.getSheetByName('Dados');
+    var aba = planilha.getSheetByName('DadosTeste');
 
     if (aba == null) {
       Logger.log('A aba "Dados" não foi encontrada. Criando uma nova aba com esse nome.');
       // Se a aba não existe, cria uma nova
-      aba = planilha.insertSheet('Dados');
+      aba = planilha.insertSheet('DadosTeste');
       // Adiciona cabeçalhos se for uma nova aba (IMPORTANTE: Mantenha a ordem dos campos aqui)
       // Ordem final dos campos
       aba.appendRow([
@@ -175,7 +175,7 @@ function atualizarDadosWeb(rowIndex, dados) {
   try {
     var planilha = SpreadsheetApp.getActiveSpreadsheet();
     Logger.log('Tentando obter a aba com o nome: Dados para atualização.');
-    var aba = planilha.getSheetByName('Dados');
+    var aba = planilha.getSheetByName('DadosTeste');
 
     if (aba == null) {
       Logger.log('A aba "Dados" não foi encontrada para atualização.');
@@ -251,7 +251,7 @@ function lerTodosOsDadosWeb(pageNumber, pageSize, filters) {
   try {
     var planilha = SpreadsheetApp.getActiveSpreadsheet();
     Logger.log('Tentando obter a aba com o nome: Dados para leitura paginada e filtrada.');
-    var aba = planilha.getSheetByName('Dados');
+    var aba = planilha.getSheetByName('DadosTeste');
 
     if (aba == null) {
       Logger.log('A aba "Dados" não foi encontrada ao ler dados. Retornando array vazio e 0 registros.');
@@ -336,8 +336,13 @@ function lerTodosOsDadosWeb(pageNumber, pageSize, filters) {
     var dadosProcessados = dadosPaginados.map(function(row) {
       return row.map(function(cell) {
         if (cell instanceof Date) {
-          // Converte o objeto Date para uma string ISO 8601 para transmissão consistente
-          return cell.toISOString(); // Formato 'YYYY-MM-DDTHH:mm:ss.sssZ'
+          // Adiciona 1 dia e formata como dd/mm/aaaa
+          var novaData = new Date(cell.getTime());
+          novaData.setDate(novaData.getDate() + 1);
+          var dia = novaData.getDate().toString().padStart(2, '0');
+          var mes = (novaData.getMonth() + 1).toString().padStart(2, '0');
+          var ano = novaData.getFullYear();
+          return dia + '/' + mes + '/' + ano;
         }
         return cell;
       });
@@ -361,7 +366,7 @@ function lerTodosOsDadosWebSemPaginacao() {
   try {
     var planilha = SpreadsheetApp.getActiveSpreadsheet();
     Logger.log('Tentando obter a aba com o nome: Dados para dashboard (sem paginação/filtros).');
-    var aba = planilha.getSheetByName('Dados');
+    var aba = planilha.getSheetByName('DadosTeste');
 
     if (aba == null) {
       Logger.log('A aba "Dados" não foi encontrada. Retornando array vazio e 0 registros para dashboard.');
@@ -391,7 +396,13 @@ function lerTodosOsDadosWebSemPaginacao() {
     var dadosProcessados = dadosBrutos.map(function(row) {
       return row.map(function(cell) {
         if (cell instanceof Date) {
-          return cell.toISOString();
+          // Adiciona 1 dia e formata como dd/mm/aaaa
+          var novaData = new Date(cell.getTime());
+          novaData.setDate(novaData.getDate() + 1);
+          var dia = novaData.getDate().toString().padStart(2, '0');
+          var mes = (novaData.getMonth() + 1).toString().padStart(2, '0');
+          var ano = novaData.getFullYear();
+          return dia + '/' + mes + '/' + ano;
         }
         return cell;
       });
@@ -479,4 +490,28 @@ function getAssuntoSubAssuntoMap() {
 
   Logger.log('Mapeamento de Assunto/Sub Assunto carregado: ' + JSON.stringify(assuntoSubAssuntoMap));
   return assuntoSubAssuntoMap;
+}
+
+/**
+ * Deleta um registro da aba 'Dados' pelo índice da linha (base 1).
+ * @param {number} rowIndex O índice da linha na planilha (base 1) a ser deletada.
+ * @return {Object} Um objeto indicando sucesso ou falha da operação.
+ */
+function deletarRegistroWeb(rowIndex) {
+  try {
+    var planilha = SpreadsheetApp.getActiveSpreadsheet();
+    var aba = planilha.getSheetByName('DadosTeste');
+    if (!aba) {
+      return { sucesso: false, mensagem: 'Aba "Dados" não encontrada.' };
+    }
+    var ultimaLinha = aba.getLastRow();
+    if (rowIndex < 2 || rowIndex > ultimaLinha) {
+      // Linha 1 é o cabeçalho, não pode ser deletada
+      return { sucesso: false, mensagem: 'Índice de linha inválido.' };
+    }
+    aba.deleteRow(rowIndex);
+    return { sucesso: true, mensagem: 'Registro deletado com sucesso!' };
+  } catch (e) {
+    return { sucesso: false, mensagem: 'Erro ao deletar registro: ' + e.toString() };
+  }
 }
