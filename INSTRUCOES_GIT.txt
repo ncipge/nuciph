@@ -1,0 +1,22 @@
+# Google Apps Script
+Este projeto está organizado para desenvolvimento local com versionamento no GitHub.
+
+- O código-fonte está em `src/`.
+- O arquivo `.clasp.json` deve permanecer na raiz para integração com o Google Apps Script.
+- O arquivo `README.md` traz instruções de uso.
+- O arquivo `.gitignore` protege arquivos sensíveis e desnecessários do versionamento.
+
+## Próximos passos
+1. Inicialize o repositório Git:
+   ```powershell
+   git init
+   git add .
+   git commit -m "Estrutura inicial do projeto Google Apps Script"
+   ```
+2. Crie um repositório no GitHub e conecte:
+   ```powershell
+   git remote add origin https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+   git push -u origin master
+   ```
+
+Se precisar de ajuda para configurar o repositório ou o fluxo de trabalho, é só pedir!

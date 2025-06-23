@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>Gerenciador de Dados da Planilha</title>
+    <!-- Inclui Tailwind CSS para estilização fácil e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Configuration for Tailwind JIT - Permite usar cores e fontes personalizadas */
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              'primary-blue': '#4F46E5', /* Indigo-600 */
+              'secondary-gray': '#6B7280', /* Gray-500 */
+              'accent-purple': '#8B5CF6', /* Violet-500 */
+              'light-bg': '#F9FAFB', /* Gray-50 */
+              'medium-bg': '#F3F4F6', /* Gray-100 */
+              'dark-text': '#1F2937', /* Gray-900 */
+              'light-text': '#6B7280', /* Gray-500 */
+              'success-light': '#D1FAE5', /* Green-100 */
+              'success-dark': '#065F46', /* Green-700 */
+              'error-light': '#FEE2E2', /* Red-100 */
+              'error-dark': '#991B1B', /* Red-700 */
+              'info-light': '#DBEAFE', /* Blue-100 */
+              'info-dark': '#1E40AF', /* Blue-800 */
+            },
+          }
+        }
+      }
+
+      /* Estilos base */
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: theme('colors.medium-bg'); /* Fundo com tom de cinza suave */
+        color: theme('colors.light-text');
+      }
+
+      .container {
+        max-width: 90%;
+        margin: 2rem auto;
+        padding: 2.5rem; /* Aumento do padding interno */
+        background-color: theme('colors.white');
+        border-radius: 1rem; /* Cantos mais arredondados */
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); /* Sombra mais pronunciada e suave */
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: theme('colors.dark-text');
+      }
+
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        padding: 0.85rem; /* Padding ligeiramente maior */
+        border: 1px solid theme('colors.gray.300');
+        border-radius: 0.625rem; /* Arredondamento consistente */
+        font-size: 0.95rem; /* Texto de entrada ligeiramente menor */
+        transition: all 0.2s ease-in-out; /* Transição suave para todas as propriedades */
+        background-color: theme('colors.white');
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: theme('colors.primary-blue');
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2); /* Sombra de foco mais profunda */
+      }
+
+      .btn {
+        padding: 0.8rem 1.8rem; /* Botões maiores */
+        border-radius: 0.75rem; /* Botões mais arredondados */
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: inline-flex; /* Para alinhamento de ícones */
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem; /* Espaço entre texto e ícone/spinner */
+      }
+
+      .btn-primary {
+        background-color: theme('colors.primary-blue');
+        color: theme('colors.white');
+      }
+      .btn-primary:hover {
+        background-color: #4338CA; /* Indigo mais escuro no hover */
+        transform: translateY(-2px); /* Efeito de elevação mais pronunciado */
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+      .btn-secondary {
+        background-color: theme('colors.secondary-gray');
+        color: theme('colors.white');
+      }
+      .btn-secondary:hover {
+        background-color: #4B5563; /* Cinza mais escuro no hover */
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+      .btn-disabled {
+        background-color: theme('colors.gray.200');
+        color: theme('colors.gray.400');
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+      }
+
+      .message-box {
+        margin-top: 1.5rem; /* Mais espaço */
+        padding: 1.2rem;
+        border-radius: 0.75rem;
+        font-weight: 500;
+        text-align: center;
+      }
+      .message-box.success {
+        background-color: theme('colors.success-light');
+        color: theme('colors.success-dark');
+        border: 1px solid theme('colors.green.300');
+      }
+      .message-box.error {
+        background-color: theme('colors.error-light');
+        color: theme('colors.error-dark');
+        border: 1px solid theme('colors.red.300');
+      }
+      .message-box.info {
+        background-color: theme('colors.info-light');
+        color: theme('colors.info-dark');
+        border: 1px solid theme('colors.blue.300');
+      }
+
+      /* Estilos da tabela */
+      table {
+        width: 100%;
+        border-collapse: separate; /* Usar 'separate' para cantos arredondados nas células */
+        border-spacing: 0;
+        margin-top: 1.5rem;
+        border-radius: 0.75rem; /* Cantos arredondados para todo o contêiner da tabela */
+        overflow: hidden; /* Garante que o conteúdo interno respeite o border-radius */
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+      th, td {
+        padding: 1rem; /* Padding aumentado */
+        text-align: left;
+        border-bottom: 1px solid theme('colors.gray.200');
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      th {
+        background-color: theme('colors.gray.100');
+        font-weight: 700;
+        color: theme('colors.dark-text');
+        text-transform: uppercase;
+        font-size: 0.9rem; /* Fonte do cabeçalho ligeiramente maior */
+        letter-spacing: 0.05em;
+      }
+      tbody tr:nth-child(even) { /* Linhas listradas */
+        background-color: theme('colors.gray.50');
+      }
+      tbody tr:hover {
+        background-color: theme('colors.info-light'); /* Azul claro no hover */
+        cursor: pointer;
+      }
+      tbody tr:last-child td {
+        border-bottom: none; /* Sem borda na última linha */
+      }
+
+      .loading-spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-left-color: theme('colors.primary-blue');
+        border-radius: 50%;
+        width: 20px; /* Spinner ligeiramente menor */
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 0.5rem;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .pagination-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 2rem;
+        gap: 1.5rem; /* Mais espaço entre os controles */
+      }
+      .pagination-controls button {
+        @apply btn btn-secondary;
+      }
+      .pagination-controls button:disabled {
+        @apply btn-disabled;
+      }
+
+      /* Estilos do Modal (Popup) */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6); /* Fundo mais escuro */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000; /* Z-index mais alto */
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+      }
+      .modal-overlay.hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+      .modal-overlay:not(.hidden) {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal-content {
+        background-color: theme('colors.white');
+        padding: 2rem; /* Mais padding */
+        border-radius: 1rem;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); /* Sombra mais profunda */
+        max-width: 850px; /* Modal ligeiramente mais largo */
+        width: 95%; /* Largura responsiva */
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        transform: translateY(20px); /* Posição inicial para animação */
+        transition: transform 0.3s ease-in-out;
+      }
+      .modal-overlay:not(.hidden) .modal-content {
+        transform: translateY(0); /* Animar para o centro */
+      }
+
+      .modal-close-btn {
+        position: absolute;
+        top: 1.2rem;
+        right: 1.2rem;
+        background: none;
+        border: none;
+        font-size: 2rem; /* Botão de fechar maior */
+        cursor: pointer;
+        color: theme('colors.secondary-gray');
+        transition: color 0.2s;
+      }
+      .modal-close-btn:hover {
+        color: theme('colors.error-dark');
+      }
+
+      /* Estilos específicos dos cartões do Dashboard */
+      .dashboard-card {
+        @apply p-6 rounded-lg shadow-md flex items-center space-x-4; /* Estilo consistente para cartões */
+        transition: transform 0.2s ease-in-out;
+      }
+      .dashboard-card:hover {
+          transform: translateY(-3px); /* Efeito de hover sutil */
+      }
+      .dashboard-card .icon {
+          font-size: 2.5rem; /* Ícones maiores */
+          color: theme('colors.primary-blue'); /* Cor padrão para ícones do dashboard */
+      }
+      .dashboard-card.total-records {
+        background-color: theme('colors.purple.100');
+        border: 1px solid theme('colors.purple.200');
+      }
+      .dashboard-card.status-analisado {
+        background-color: theme('colors.blue.100');
+        border: 1px solid theme('colors.blue.200');
+      }
+      .dashboard-card.recent-records {
+        background-color: theme('colors.green.100');
+        border: 1px solid theme('colors.green.200');
+      }
+
+      /* Estilo para exibição de e-mail do usuário */
+      .user-email-display {
+        @apply text-right text-gray-700 text-sm font-medium flex items-center justify-end space-x-2;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid theme('colors.gray.200');
+        margin-bottom: 1.5rem;
+      }
+
+      /* FontAwesome Icons - Para ícones profissionais */
+      @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css");
+
+    </style>
+  </head>
+  <body class="bg-gray-100 p-4 sm:p-6 md:p-8">
+    <div class="container">
+      <!-- Exibição do e-mail do usuário logado -->
+      <div class="user-email-display">
+        <i class="fas fa-user-circle text-xl text-primary-blue"></i>
+        <span>Usuário logado: <span id="userEmailDisplay" class="font-bold text-dark-text">Carregando...</span></span>
+      </div>
+
+      <h1 class="text-4xl font-extrabold text-center mb-8 text-dark-text border-b-2 border-primary-blue pb-4">Gerenciador de Dados da Planilha</h1>
+
+      <!-- Seção de Dashboard -->
+      <div class="mb-10 p-6 bg-light-bg rounded-xl shadow-lg">
+        <h2 class="text-2xl font-bold mb-6 text-primary-blue">Dashboard de Resumo</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+          <div class="dashboard-card total-records">
+            <i class="fas fa-database icon text-accent-purple"></i>
+            <div>
+              <h3 class="text-lg font-semibold text-accent-purple">Total de Registros</h3>
+              <p id="dashboardTotalRecords" class="text-3xl font-bold text-dark-text">...</p>
+            </div>
+          </div>
+          <div class="dashboard-card status-analisado">
+            <i class="fas fa-check-circle icon text-primary-blue"></i>
+            <div>
+              <h3 class="text-lg font-semibold text-primary-blue">Status "Analisado"</h3>
+              <p id="dashboardStatusAnalisado" class="text-3xl font-bold text-dark-text">...</p>
+            </div>
+          </div>
+          <div class="dashboard-card recent-records">
+            <i class="fas fa-history icon text-green-700"></i>
+            <div>
+              <h3 class="text-lg font-semibold text-green-700">Registros Recentes (7d)</h3>
+              <p class="text-xl text-dark-text">Últimos 7 dias: <span id="dashboardRecentRecords" class="font-bold">...</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão para abrir o Formulário de Inserção -->
+      <div class="text-center mb-10">
+        <button id="openAddRecordModalBtn" class="btn btn-primary text-xl px-10 py-4 transform hover:scale-105">
+          <i class="fas fa-plus-circle"></i>
+          Adicionar Novo Registro
+        </button>
+      </div>
+
+      <!-- Seção de Filtros -->
+      <div class="mb-10 p-6 bg-medium-bg rounded-xl shadow-lg">
+        <h2 class="text-2xl font-bold mb-6 text-yellow-800">Filtrar Dados</h2>
+        <form id="filterForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="form-group">
+            <label for="filterStatus">Status:</label>
+            <input type="text" id="filterStatus" name="status" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="filterSistema">Sistema:</label>
+            <select id="filterSistema" name="sistema" class="w-full">
+              <option value="">Todos</option>
+              <option value="PAE 3.0">PAE 3.0</option>
+              <option value="PAE 4.0">PAE 4.0</option>
+              <option value="ATTUS">ATTUS</option>
+              <option value="SAJ">SAJ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="filterNumPaejSaj">Núm.PAE/SAJ:</label>
+            <input type="text" id="filterNumPaejSaj" name="numPaejSaj" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="filterInteressado">Interessado:</label>
+            <input type="text" id="filterInteressado" name="interessado" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="filterSituacao">Situação:</label>
+            <select id="filterSituacao" name="situacao" class="w-full">
+              <option value="">Todos</option>
+              <option value="CONFORME">CONFORME</option>
+              <option value="CONFORME PARCIAL">CONFORME PARCIAL</option>
+              <option value="INCONFORME">INCONFORME</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="filterAssimetria">Assimetria:</label>
+            <select id="filterAssimetria" name="assimetria" class="w-full">
+              <option value="">Todos</option>
+              <option value="DESACORDO LEGAL">DESACORDO LEGAL</option>
+              <option value="FALTA DE DOCUMENTO">FALTA DE DOCUMENTO</option>
+              <option value="PRAZO">PRAZO</option>
+              <option value="ESCLARECIMENTO">ESCLARECIMENTO</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="filterUgOrigem">UG Origem:</label>
+            <input type="text" id="filterUgOrigem" name="ugOrigem" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="filterAssunto">Assunto:</label>
+            <select id="filterAssunto" name="assunto" class="w-full">
+              <option value="">Todos</option>
+              <!-- Opções de Assunto serão carregadas via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="filterSubAssunto">Sub Assunto:</label>
+            <select id="filterSubAssunto" name="subAssunto" class="w-full" disabled>
+              <option value="">Todos</option>
+              <!-- Opções de Sub Assunto serão carregadas via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="filterAciResponsavel">ACI Responsável:</label>
+            <input type="text" id="filterAciResponsavel" name="aciResponsavel" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="filterDestino">Destino:</label>
+            <input type="text" id="filterDestino" name="destino" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="filterSaida">Saída:</label>
+            <input type="date" id="filterSaida" name="saida" class="w-full">
+          </div>
+          <div class="col-span-1 md:col-span-3 flex justify-center gap-4 mt-4">
+            <button type="button" id="applyFiltersBtn" class="btn btn-primary w-full sm:w-auto">
+              <i class="fas fa-filter"></i>
+              Aplicar Filtros
+              <span id="filterSpinner" class="loading-spinner hidden"></span>
+            </button>
+            <button type="button" id="clearFiltersBtn" class="btn btn-secondary w-full sm:w-auto">
+              <i class="fas fa-times"></i>
+              Limpar Filtros
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Seção de Leitura de Dados -->
+      <div class="p-6 bg-light-bg rounded-xl shadow-lg">
+        <h2 class="text-2xl font-bold mb-6 text-green-800">Dados Existentes na Planilha</h2>
+        <button id="refreshDataBtn" class="btn btn-secondary mb-6 w-full sm:w-auto transform hover:scale-105">
+          <i class="fas fa-sync-alt"></i>
+          Atualizar Dados
+          <span id="refreshSpinner" class="loading-spinner hidden"></span>
+        </button>
+        <div id="dataContainer" class="overflow-x-auto rounded-lg">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th class="px-6 py-3">Status</th>
+                <th class="px-6 py-3">Sistema</th>
+                <th class="px-6 py-3">Núm.PAE/SAJ</th>
+                <th class="px-6 py-3">Interessado</th>
+                <th class="px-6 py-3">Entrada</th>
+                <th class="px-6 py-3">Situação</th>
+                <th class="px-6 py-3">Assimetria</th>
+                <th class="px-6 py-3">Observação</th>
+                <th class="px-6 py-3">UG Origem</th>
+                <th class="px-6 py-3">Assunto</th>
+                <th class="px-6 py-3">Sub Assunto</th>
+                <th class="px-6 py-3">ACI Responsável</th>
+                <th class="px-6 py-3">Destino</th>
+                <th class="px-6 py-3">Saída</th>
+                <th class="px-6 py-3">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="dataTableBody" class="bg-white divide-y divide-gray-200">
+              <!-- Dados serão carregados aqui -->
+              <tr>
+                <td colspan="15" class="text-center py-4 text-gray-500">Nenhum dado carregado.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Controles de Paginação -->
+        <div class="pagination-controls">
+          <button id="prevPageBtn" disabled>
+            <i class="fas fa-chevron-left"></i>
+            Anterior
+          </button>
+          <span id="pageInfo" class="text-gray-700 font-semibold">Página 1 de 1</span>
+          <button id="nextPageBtn" disabled>
+            Próximo
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        <div id="readMessage" class="message-box hidden mt-4"></div>
+      </div>
+    </div>
+
+    <!-- Modal para Inserção/Edição de Dados -->
+    <div id="recordModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <button id="closeModalBtn" class="modal-close-btn">&times;</button>
+        <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-primary-blue">Adicionar Novo Registro</h2>
+        <form id="recordFormModal" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Campo oculto para armazenar o índice da linha sendo editada -->
+          <input type="hidden" id="recordRowIndex" name="rowIndex">
+
+          <div class="form-group">
+            <label for="modalStatus">Status:</label>
+            <input type="text" id="modalStatus" name="status" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="modalSistema">Sistema:</label>
+            <select id="modalSistema" name="sistema" class="w-full">
+              <option value="">Selecione</option>
+              <option value="PAE 3.0">PAE 3.0</option>
+              <option value="PAE 4.0">PAE 4.0</option>
+              <option value="ATTUS">ATTUS</option>
+              <option value="SAJ">SAJ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="modalNumPaejSaj">Núm.PAE/SAJ:</label>
+            <input type="text" id="modalNumPaejSaj" name="numPaejSaj" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="modalInteressado">Interessado:</label>
+            <input type="text" id="modalInteressado" name="interessado" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="modalEntrada">Entrada:</label>
+            <input type="date" id="modalEntrada" name="entrada" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="modalSituacao">Situação:</label>
+            <select id="modalSituacao" name="situacao" class="w-full">
+              <option value="">Selecione</option>
+              <option value="CONFORME">CONFORME</option>
+              <option value="CONFORME PARCIAL">CONFORME PARCIAL</option>
+              <option value="INCONFORME">INCONFORME</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="modalAssimetria">Assimetria:</label>
+            <select id="modalAssimetria" name="assimetria" class="w-full">
+              <option value="">Selecione</option>
+              <option value="DESACORDO LEGAL">DESACORDO LEGAL</option>
+              <option value="FALTA DE DOCUMENTO">FALTA DE DOCUMENTO</option>
+              <option value="PRAZO">PRAZO</option>
+              <option value="ESCLARECIMENTO">ESCLARECIMENTO</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="modalObservacao">Observação:</label>
+            <textarea id="modalObservacao" name="observacao" rows="2" class="w-full"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="modalUgOrigem">UG Origem:</label>
+            <input type="text" id="modalUgOrigem" name="ugOrigem" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="modalAssunto">Assunto:</label>
+            <select id="modalAssunto" name="assunto" class="w-full">
+              <option value="">Selecione</option>
+              <!-- Opções de Assunto serão carregadas via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="modalSubAssunto">Sub Assunto:</label>
+            <select id="modalSubAssunto" name="subAssunto" class="w-full" disabled>
+              <option value="">Selecione</option>
+              <!-- Opções de Sub Assunto serão carregadas via JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="modalAciResponsavel">ACI Responsável:</label>
+            <input type="text" id="modalAciResponsavel" name="aciResponsavel" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="modalDestino">Destino:</label>
+            <input type="text" id="modalDestino" name="destino" class="w-full">
+          </div>
+          <div class="form-group">
+            <label for="modalSaida">Saída:</label>
+            <input type="date" id="modalSaida" name="saida" class="w-full">
+          </div>
+          <div class="col-span-1 md:col-span-3 flex justify-center gap-4 mt-4">
+            <button type="submit" id="modalSubmitBtn" class="btn btn-primary w-full sm:w-auto">
+              <i class="fas fa-save"></i>
+              Gravar Registro
+              <span id="modalLoadingSpinner" class="loading-spinner hidden"></span>
+            </button>
+          </div>
+          <div id="modalResponseMessage" class="message-box hidden col-span-1 md:col-span-3"></div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Variáveis de Paginação
+      let currentPage = 1;
+      const pageSize = 20; // Defina o número de registros por página
+      let totalRecords = 0;
+      let totalPages = 1;
+      let currentFilters = {}; // Objeto para armazenar os filtros ativos
+
+      // Variáveis do Dashboard
+      let allDataForDashboard = []; // Para armazenar todos os dados brutos para o dashboard
+      let currentTableData = []; // Para armazenar os dados da tabela atual para edição
+
+      // Referências aos elementos do modal
+      const recordModal = document.getElementById('recordModal');
+      const openAddRecordModalBtn = document.getElementById('openAddRecordModalBtn');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const recordFormModal = document.getElementById('recordFormModal');
+      const modalLoadingSpinner = document.getElementById('modalLoadingSpinner');
+      const modalResponseMessage = document.getElementById('modalResponseMessage');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+
+      // Referência ao campo oculto para o índice da linha
+      const recordRowIndex = document.getElementById('recordRowIndex');
+
+      // Referências aos campos Sistema e Num. PAEJ S.A.J. (para máscara)
+      const modalSistemaSelect = document.getElementById('modalSistema');
+      const modalNumPaejSajInput = document.getElementById('modalNumPaejSaj');
+      const sistemaSelectFilter = document.getElementById('filterSistema');
+
+      // Referências para os campos Situação e Assimetria no modal
+      const modalSituacaoSelect = document.getElementById('modalSituacao');
+      const modalAssimetriaSelect = document.getElementById('modalAssimetria');
+
+      // Novas referências para os campos Assunto e Sub Assunto (modal e filtro)
+      const modalAssuntoSelect = document.getElementById('modalAssunto');
+      const modalSubAssuntoSelect = document.getElementById('modalSubAssunto');
+      const filterAssuntoSelect = document.getElementById('filterAssunto');
+      const filterSubAssuntoSelect = document.getElementById('filterSubAssunto');
+
+      // Referências para os novos campos ACI Responsável, Destino e Saída (modal e filtro)
+      const modalAciResponsavelInput = document.getElementById('modalAciResponsavel');
+      const modalDestinoInput = document.getElementById('modalDestino');
+      const modalSaidaInput = document.getElementById('modalSaida'); // Input de data já existia, mas referenciando explicitamente
+
+      const filterAciResponsavelInput = document.getElementById('filterAciResponsavel');
+      const filterDestinoInput = document.getElementById('filterDestino');
+      const filterSaidaInput = document.getElementById('filterSaida');
+
+      // Referência para exibir o e-mail do usuário
+      const userEmailDisplay = document.getElementById('userEmailDisplay');
+
+
+      let assuntoSubAssuntoMap = {}; // Variável para armazenar o mapeamento Assunto -> Sub Assuntos
+
+      // Nomes dos campos do formulário para fácil iteração (total de 14 campos agora)
+      const formFields = [
+        'status', 'sistema', 'numPaejSaj', 'interessado', 'entrada', 'situacao',
+        'assimetria', 'observacao', 'ugOrigem', 'assunto', 'subAssunto',
+        'aciResponsavel', 'destino', 'saida'
+      ];
+
+      // Mapeamento dos nomes dos campos do formulário para os índices das colunas na planilha (base 0 para JS)
+      // ATENÇÃO: ESTE MAPEAMENTO DEVE CORRESPONDER À ORDEM DAS COLUNAS NA SUA PLANILHA GOOGLE
+      const sheetColumnIndexes = {
+        status: 0,
+        sistema: 1,
+        numPaejSaj: 2,
+        interessado: 3,
+        entrada: 4,
+        situacao: 5,
+        assimetria: 6,
+        observacao: 7,
+        ugOrigem: 8,
+        assunto: 9,
+        subAssunto: 10,
+        aciResponsavel: 11,
+        destino: 12,
+        saida: 13
+      };
+
+
+      // Função para exibir mensagens de status
+      function showMessage(elementId, message, type) {
+        const messageBox = document.getElementById(elementId);
+        messageBox.textContent = message;
+        messageBox.className = `message-box ${type}`; // Adiciona classes de estilo dinamicamente
+        messageBox.classList.remove('hidden');
+      }
+
+      // Função para esconder mensagens de status
+      function hideMessage(elementId) {
+        document.getElementById(elementId).classList.add('hidden');
+      }
+
+      // Função para mostrar ou esconder o spinner de carregamento
+      function toggleSpinner(spinnerId, show) {
+        document.getElementById(spinnerId).classList.toggle('hidden', !show);
+      }
+
+      // Atualiza os controles de paginação (botões e texto)
+      function updatePaginationControls() {
+        document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
+        document.getElementById('prevPageBtn').disabled = currentPage === 1;
+        document.getElementById('nextPageBtn').disabled = currentPage === totalPages || totalRecords === 0;
+      }
+
+      // Funções para abrir e fechar o modal (reutilizado para adicionar/editar)
+      function openRecordModal(mode, rowIndex = -1, rowData = null) {
+        recordModal.classList.remove('hidden');
+        hideMessage('modalResponseMessage'); // Esconde mensagens anteriores
+
+        if (mode === 'add') {
+          recordFormModal.reset(); // Limpa o formulário para um novo registro
+          modalTitle.textContent = 'Adicionar Novo Registro';
+          modalSubmitBtn.textContent = 'Gravar Registro';
+          recordRowIndex.value = ''; // Garante que o índice da linha esteja vazio para adição
+          modalNumPaejSajInput.value = '';
+          modalNumPaejSajInput.placeholder = 'Selecione um Sistema para a máscara';
+          modalSistemaSelect.value = ''; // Reseta o select do sistema no modal
+          
+          // Garante que o campo Assimetria esteja inicialmente desabilitado/resetado
+          updateAssimetriaFieldState(); 
+
+          // Reseta e popula os campos Assunto/Sub Assunto
+          populateAssuntoDropdown(modalAssuntoSelect, 'Selecione');
+          populateSubAssuntoDropdown(modalSubAssuntoSelect, [], 'Selecione', true); // Desabilita Sub Assunto
+
+        } else if (mode === 'edit' && rowData) {
+          modalTitle.textContent = 'Editar Registro';
+          modalSubmitBtn.textContent = 'Atualizar Registro';
+          recordRowIndex.value = rowIndex; // Define o índice da linha para edição
+
+          // Preencher o formulário com os dados da linha
+          formFields.forEach(field => {
+            const inputElement = document.getElementById('modal' + field.charAt(0).toUpperCase() + field.slice(1));
+            // Edge case for 'numPaejSaj' because it's 'Núm.PAE/SAJ' in label
+            if (field === 'numPaejSaj') {
+                inputElement = document.getElementById('modalNumPaejSaj');
+            }
+            // Edge case for 'aciResponsavel' because it's 'ACI Responsável' in label
+            if (field === 'aciResponsavel') {
+                inputElement = document.getElementById('modalAciResponsavel');
+            }
+
+            if (inputElement) {
+              const value = rowData[sheetColumnIndexes[field]]; // Usa o mapeamento para obter o valor correto da coluna
+
+              if (inputElement.type === 'date') {
+                  // Para campos de data, formatar a string ISO 8601 para YYYY-MM-DD
+                  if (value && typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}T/)) {
+                      inputElement.value = value.split('T')[0];
+                  } else {
+                      inputElement.value = '';
+                  }
+              } else if (inputElement.tagName === 'SELECT') {
+                  // Para selects, defina o valor diretamente
+                  inputElement.value = value;
+                  // Se for Assunto, dispare a atualização do Sub Assunto
+                  if (field === 'assunto') {
+                      populateAssuntoDropdown(modalAssuntoSelect, 'Selecione'); // Re-popula para garantir todas as opções
+                      modalAssuntoSelect.value = value; // Seta o valor
+                      updateSubAssuntoDropdown(modalAssuntoSelect, modalSubAssuntoSelect);
+                      modalSubAssuntoSelect.value = rowData[sheetColumnIndexes['subAssunto']]; // Seta o valor do Sub Assunto
+                  }
+                  // Se for Situação, dispare a atualização da Assimetria
+                  if (field === 'situacao') {
+                      updateAssimetriaFieldState();
+                  }
+                  // Se for Sistema, dispare a atualização da máscara do PAEJ SAJ
+                  if (field === 'sistema') {
+                      updatePaejMask();
+                  }
+              } else {
+                  inputElement.value = value;
+              }
+            }
+          });
+          // Se o sistema já estiver selecionado na edição, aplica a máscara
+          if (modalSistemaSelect.value) {
+            updatePaejMask();
+            applyMask(modalNumPaejSajInput, masks[modalSistemaSelect.value]);
+          }
+        }
+        recordModal.classList.remove('hidden');
+      }
+
+      function closeRecordModal() {
+        recordModal.classList.add('hidden');
+      }
+
+      // Lógica de Máscara de Entrada para Num. PAEJ S.A.J.
+      const masks = {
+        'PAE 3.0': '2025/00000000',
+        'PAE 4.0': 'E-2025/00000000',
+        'ATTUS': '2020.01.00000000000',
+        'SAJ': '2020.01.00000000000'
+      };
+
+      function applyMask(inputElement, mask) {
+        if (!inputElement || !mask) return;
+
+        inputElement.placeholder = mask; // Exibe a máscara como placeholder
+        let current = inputElement.value;
+        let formatted = '';
+        let maskCharIndex = 0;
+        let valueCharIndex = 0;
+
+        while (maskCharIndex < mask.length && valueCharIndex < current.length) {
+          if (mask[maskCharIndex] === '0') { // Caractere de preenchimento (número)
+            if (/\d/.test(current[valueCharIndex])) {
+              formatted += current[valueCharIndex];
+              valueCharIndex++;
+            }
+            maskCharIndex++;
+          } else { // Caractere literal da máscara
+            formatted += mask[maskCharIndex];
+            if (mask[maskCharIndex] === current[valueCharIndex]) {
+              valueCharIndex++; // Consome o caractere da entrada se corresponder à máscara
+            }
+            maskCharIndex++;
+          }
+        }
+        inputElement.value = formatted;
+      }
+
+      function updatePaejMask() {
+        const selectedSystem = modalSistemaSelect.value;
+        const mask = masks[selectedSystem];
+        if (mask) {
+          modalNumPaejSajInput.placeholder = mask;
+        } else {
+          modalNumPaejSajInput.value = '';
+          modalNumPaejSajInput.placeholder = 'Selecione um Sistema para a máscara';
+        }
+      }
+
+      // Lógica de dependência entre Situação e Assimetria
+      function updateAssimetriaFieldState() {
+        const situacaoValue = modalSituacaoSelect.value;
+        if (situacaoValue === 'CONFORME') {
+          modalAssimetriaSelect.value = ''; // Limpa o valor
+          modalAssimetriaSelect.disabled = true; // Desabilita o campo
+          modalAssimetriaSelect.classList.add('bg-gray-200'); // Adiciona estilo visual de desabilitado
+        } else {
+          modalAssimetriaSelect.disabled = false; // Habilita o campo
+          modalAssimetriaSelect.classList.remove('bg-gray-200'); // Remove estilo visual de desabilitado
+        }
+      }
+
+      // Lógica de dependência entre Assunto e Sub Assunto
+      function populateAssuntoDropdown(dropdownElement, defaultOptionText = 'Selecione') {
+        dropdownElement.innerHTML = ''; // Limpa opções existentes
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = defaultOptionText;
+        dropdownElement.appendChild(defaultOption);
+
+        const assuntos = Object.keys(assuntoSubAssuntoMap).sort(); // Obtém e ordena os assuntos
+        assuntos.forEach(assunto => {
+          const option = document.createElement('option');
+          option.value = assunto;
+          option.textContent = assunto;
+          dropdownElement.appendChild(option);
+        });
+      }
+
+      function populateSubAssuntoDropdown(dropdownElement, subAssuntos, defaultOptionText = 'Selecione', disable = false) {
+        dropdownElement.innerHTML = ''; // Limpa opções existentes
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = defaultOptionText;
+        dropdownElement.appendChild(defaultOption);
+
+        subAssuntos.sort().forEach(subAssunto => { // Adiciona e ordena sub assuntos
+          const option = document.createElement('option');
+          option.value = subAssunto;
+          option.textContent = subAssunto;
+          dropdownElement.appendChild(option);
+        });
+
+        dropdownElement.disabled = disable;
+        dropdownElement.classList.toggle('bg-gray-200', disable);
+      }
+
+      function updateSubAssuntoDropdown(assuntoSelectElement, subAssuntoSelectElement) {
+        const selectedAssunto = assuntoSelectElement.value;
+        const subAssuntos = assuntoSubAssuntoMap[selectedAssunto] || [];
+        
+        if (selectedAssunto === '') {
+            populateSubAssuntoDropdown(subAssuntoSelectElement, [], 'Selecione', true); // Limpa e desabilita
+        } else {
+            populateSubAssuntoDropdown(subAssuntoSelectElement, subAssuntos, 'Selecione', false); // Habilita
+        }
+      }
+
+
+      // --- EVENT LISTENERS ---
+
+      // Sistema e Num. PAEJ S.A.J. (Modal)
+      modalSistemaSelect.addEventListener('change', updatePaejMask);
+      modalNumPaejSajInput.addEventListener('input', function() {
+        const selectedSystem = modalSistemaSelect.value;
+        const mask = masks[selectedSystem];
+        if (mask) {
+          applyMask(this, mask);
+        }
+      });
+
+      // Situação e Assimetria (Modal)
+      modalSituacaoSelect.addEventListener('change', updateAssimetriaFieldState);
+
+      // Assunto e Sub Assunto (Modal)
+      modalAssuntoSelect.addEventListener('change', function() {
+        updateSubAssuntoDropdown(modalAssuntoSelect, modalSubAssuntoSelect);
+      });
+
+      // Assunto e Sub Assunto (Filtro)
+      filterAssuntoSelect.addEventListener('change', function() {
+        updateSubAssuntoDropdown(filterAssuntoSelect, filterSubAssuntoSelect);
+      });
+
+
+      // Lida com o envio do formulário dentro do modal para gravar/atualizar dados
+      recordFormModal.addEventListener('submit', function(e) {
+        e.preventDefault(); // Impede o envio padrão do formulário
+        hideMessage('modalResponseMessage'); // Esconde mensagens anteriores
+        toggleSpinner('modalLoadingSpinner', true); // Mostra o spinner
+
+        const formData = new FormData(this);
+        const data = {};
+        for (let [key, value] of formData.entries()) {
+          data[key] = value;
+        }
+
+        const rowIndexToEdit = recordRowIndex.value;
+
+        if (rowIndexToEdit) { // Modo de Edição
+          google.script.run
+            .withSuccessHandler(function(response) {
+              toggleSpinner('modalLoadingSpinner', false); // Esconde o spinner
+              if (response.sucesso) {
+                showMessage('modalResponseMessage', response.mensagem, 'success');
+                setTimeout(() => {
+                  closeRecordModal();
+                  lerDadosExistentes(); // Recarrega a tabela atualizada
+                  lerDadosDashboard(); // Atualiza o dashboard
+                }, 1500);
+              } else {
+                showMessage('modalResponseMessage', response.mensagem, 'error');
+              }
+            })
+            .withFailureHandler(function(error) {
+              toggleSpinner('modalLoadingSpinner', false); // Esconde o spinner
+              showMessage('modalResponseMessage', 'Erro ao atualizar dados: ' + error.message, 'error');
+            })
+            .atualizarDadosWeb(rowIndexToEdit, data);
+        } else { // Modo de Adição
+          google.script.run
+            .withSuccessHandler(function(response) {
+              toggleSpinner('modalLoadingSpinner', false); // Esconde o spinner
+              if (response.sucesso) {
+                showMessage('modalResponseMessage', response.mensagem, 'success');
+                setTimeout(() => {
+                  closeRecordModal();
+                  currentPage = 1; // Volta para a primeira página para ver o novo registro
+                  lerDadosExistentes();
+                  lerDadosDashboard(); // Atualiza também o dashboard
+                }, 1500);
+              } else {
+                showMessage('modalResponseMessage', response.mensagem, 'error');
+              }
+            })
+            .withFailureHandler(function(error) {
+              toggleSpinner('modalLoadingSpinner', false); // Esconde o spinner
+              showMessage('modalResponseMessage', 'Erro ao gravar dados: ' + error.message, 'error');
+            })
+            .gravarDadosWeb(data);
+        }
+      });
+
+      // Lida com o clique no botão de atualizar dados
+      document.getElementById('refreshDataBtn').addEventListener('click', function() {
+        currentPage = 1;
+        lerDadosExistentes();
+        lerDadosDashboard(); // Atualiza também o dashboard
+      });
+
+      // Lida com o clique no botão de página anterior
+      document.getElementById('prevPageBtn').addEventListener('click', function() {
+        if (currentPage > 1) {
+          currentPage--;
+          lerDadosExistentes();
+        }
+      });
+
+      // Lida com o clique no botão de próxima página
+      document.getElementById('nextPageBtn').addEventListener('click', function() {
+        if (currentPage < totalPages) {
+          currentPage++;
+          lerDadosExistentes();
+        }
+      });
+
+      // Lida com o clique no botão Aplicar Filtros
+      document.getElementById('applyFiltersBtn').addEventListener('click', function() {
+        hideMessage('readMessage');
+        toggleSpinner('filterSpinner', true);
+
+        const filterForm = document.getElementById('filterForm');
+        const formData = new FormData(filterForm);
+        currentFilters = {}; // Limpa filtros anteriores
+        for (let [key, value] of formData.entries()) {
+          if (value) { // Adiciona apenas filtros com valor
+            currentFilters[key] = value;
+          }
+        }
+        currentPage = 1; // Ao aplicar filtros, sempre volte para a primeira página
+        lerDadosExistentes();
+      });
+
+      // Lida com o clique no botão Limpar Filtros
+      document.getElementById('clearFiltersBtn').addEventListener('click', function() {
+        document.getElementById('filterForm').reset(); // Limpa os campos do formulário de filtro
+        // Reset dos dropdowns de Assunto/Sub Assunto no filtro
+        populateAssuntoDropdown(filterAssuntoSelect, 'Todos');
+        populateSubAssuntoDropdown(filterSubAssuntoSelect, [], 'Todos', true);
+
+        currentFilters = {}; // Limpa os filtros ativos
+        currentPage = 1; // Volta para a primeira página
+        lerDadosExistentes();
+      });
+
+      // Funções para abrir e fechar o modal
+      openAddRecordModalBtn.addEventListener('click', function() {
+        openRecordModal('add'); // Abre o modal no modo de adição
+      });
+      closeModalBtn.addEventListener('click', function() {
+        recordModal.classList.add('hidden'); // Fecha o modal
+        // Remover a classe de animação para garantir que ela seja reproduzida na próxima vez
+        recordModal.querySelector('.modal-content').classList.remove('animate-modal-open');
+        recordModal.querySelector('.modal-content').classList.add('animate-modal-close');
+      });
+
+      // Função para ler e exibir dados existentes na planilha com paginação e filtros
+      function lerDadosExistentes() {
+        hideMessage('readMessage'); // Esconde mensagens anteriores
+        toggleSpinner('refreshSpinner', true); // Mostra o spinner de atualização
+        toggleSpinner('filterSpinner', true); // Mostra o spinner de filtro (se aplicável)
+
+        const dataTableBody = document.getElementById('dataTableBody');
+        // Colspan ajustado para 15 (14 colunas de dados + 1 de Ações)
+        dataTableBody.innerHTML = '<tr><td colspan="15" class="text-center py-4 text-gray-500">Carregando dados...</td></tr>'; // Mensagem de carregamento
+
+        // Chama a função lerTodosOsDadosWeb no Apps Script com parâmetros de paginação e filtros
+        google.script.run
+          .withSuccessHandler(function(response) {
+            toggleSpinner('refreshSpinner', false); // Esconde o spinner de atualização
+            toggleSpinner('filterSpinner', false); // Esconde o spinner de filtro
+
+            console.log('Dados recebidos do Apps Script:', response.data);
+            console.log('Total de registros filtrados:', response.totalRecords);
+
+            currentTableData = response.data; // Armazena os dados da tabela atual para edição
+            totalRecords = response.totalRecords;
+            totalPages = Math.ceil(totalRecords / pageSize);
+            if (totalPages === 0) totalPages = 1;
+
+            dataTableBody.innerHTML = ''; // Limpa o conteúdo atual da tabela
+
+            if (currentTableData && currentTableData.length > 0) {
+              currentTableData.forEach(function(linha, index) {
+                const row = dataTableBody.insertRow();
+                // O rowIndex passado para o botão de edição precisa ser o índice da linha na PLANILHA (base 1),
+                // ajustado pela página atual e pelo cabeçalho.
+                // Formula: ((currentPage - 1) * pageSize) + index + 2;
+                const actualSheetRowIndex = ((currentPage - 1) * pageSize) + index + 2;
+
+                linha.forEach(function(celula, cellIndex) { // Adicionado cellIndex
+                  const cell = row.insertCell();
+                  // Mapeamento dos índices das colunas para os nomes dos campos (para formatação condicional)
+                  const columnIndexToFieldName = [
+                      'status', 'sistema', 'numPaejSaj', 'interessado', 'entrada', 'situacao',
+                      'assimetria', 'observacao', 'ugOrigem', 'assunto', 'subAssunto',
+                      'aciResponsavel', 'destino', 'saida'
+                  ];
+                  const fieldName = columnIndexToFieldName[cellIndex];
+
+                  // Formata a data/hora se for uma string ISO 8601 e for o campo 'saida' ou 'entrada'
+                  if (typeof celula === 'string' && celula.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/) && 
+                      (fieldName === 'saida' || fieldName === 'entrada')) {
+                    try {
+                      // Usa toLocaleDateString para formato dd/mm/aaaa
+                      cell.textContent = new Date(celula).toLocaleDateString('pt-BR');
+                    } catch (e) {
+                      cell.textContent = celula; // Em caso de erro na data, exibe como está
+                    }
+                  } else {
+                    cell.textContent = celula;
+                  }
+                });
+
+                // Adiciona a célula de ações com o botão Editar
+                const actionCell = row.insertCell();
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Editar';
+                editButton.classList.add('btn', 'btn-secondary', 'text-sm', 'px-3', 'py-1');
+                editButton.onclick = function() {
+                  // Passa o índice da linha REAL na planilha e os dados da linha
+                  openRecordModal('edit', actualSheetRowIndex, linha);
+                };
+                actionCell.appendChild(editButton);
+              });
+              showMessage('readMessage', `Foram carregados ${currentTableData.length} registros da página ${currentPage}. Total: ${totalRecords} registros.`, 'success');
+            } else {
+              // Colspan ajustado para 15
+              dataTableBody.innerHTML = '<tr><td colspan="15" class="text-center py-4 text-gray-500">Nenhum dado encontrado na página atual ou com os filtros aplicados.</td></tr>';
+              showMessage('readMessage', 'Nenhum dado encontrado na página atual ou com os filtros aplicatailwindd.', 'info');
+            }
+            updatePaginationControls();
+          })
+          .withFailureHandler(function(error) {
+            toggleSpinner('refreshSpinner', false);
+            toggleSpinner('filterSpinner', false);
+            showMessage('readMessage', 'Erro ao ler dados: ' + error.message, 'error');
+            // Colspan ajustado para 15
+            dataTableBody.innerHTML = '<tr><td colspan="15" class="text-center py-4 text-red-500">Erro ao carregar dados.</td></tr>';
+            updatePaginationControls();
+          })
+          .lerTodosOsDadosWeb(currentPage, pageSize, currentFilters);
+      }
+
+      // Função para buscar todos os dados (sem paginação/filtros) para o dashboard
+      function lerDadosDashboard() {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            allDataForDashboard = response.data;
+            console.log('Dados totais para dashboard:', allDataForDashboard.length);
+            updateDashboard();
+          })
+          .withFailureHandler(function(error) {
+            console.error('Erro ao carregar dados para o dashboard:', error.message);
+            document.getElementById('dashboardTotalRecords').textContent = 'Erro';
+            document.getElementById('dashboardStatusAnalisado').textContent = 'Erro';
+            document.getElementById('dashboardRecentRecords').textContent = 'Erro';
+          })
+          .lerTodosOsDadosWebSemPaginacao();
+      }
+
+      // Função para atualizar os elementos do dashboard
+      function updateDashboard() {
+        // Mapeamento dos índices das colunas para os nomes dos campos (para o dashboard)
+        // ATENÇÃO: Verifique se esses índices correspondem à sua planilha atual
+        const columnIndexMap = {
+            status: 0,
+            sistema: 1,
+            numPaejSaj: 2,
+            interessado: 3,
+            entrada: 4,
+            situacao: 5,
+            assimetria: 6,
+            observacao: 7,
+            ugOrigem: 8,
+            assunto: 9,
+            subAssunto: 10,
+            aciResponsavel: 11,
+            destino: 12,
+            saida: 13
+        };
+
+        document.getElementById('dashboardTotalRecords').textContent = allDataForDashboard.length;
+
+        const statusAnalisadoCount = allDataForDashboard.filter(row =>
+            row[columnIndexMap.status] && row[columnIndexMap.status].toString().toLowerCase() === 'analisado'
+        ).length;
+        document.getElementById('dashboardStatusAnalisado').textContent = statusAnalisadoCount;
+
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+
+        const recentRecordsCount = allDataForDashboard.filter(row => {
+            const entradaDateString = row[columnIndexMap.entrada];
+            if (typeof entradaDateString === 'string' && entradaDateString.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/)) {
+                try {
+                    const entryDate = new Date(entradaDateString);
+                    entryDate.setHours(0, 0, 0, 0);
+                    return entryDate >= sevenDaysAgo;
+                } catch (e) {
+                    return false;
+                }
+            }
+            return false;
+        }).length;
+        document.getElementById('dashboardRecentRecords').textContent = recentRecordsCount;
+      }
+
+      function loadAssuntoSubAssuntoMap() {
+        google.script.run
+          .withSuccessHandler(function(map) {
+            assuntoSubAssuntoMap = map;
+            console.log('Mapeamento Assunto/Sub Assunto carregado:', assuntoSubAssuntoMap);
+            populateAssuntoDropdown(modalAssuntoSelect, 'Selecione');
+            populateAssuntoDropdown(filterAssuntoSelect, 'Todos');
+            populateSubAssuntoDropdown(modalSubAssuntoSelect, [], 'Selecione', true);
+            populateSubAssuntoDropdown(filterSubAssuntoSelect, [], 'Todos', true);
+          })
+          .withFailureHandler(function(error) {
+            console.error('Erro ao carregar mapeamento de Assunto/Sub Assunto:', error.message);
+          })
+          .getAssuntoSubAssuntoMap();
+      }
+
+      // Função para exibir o e-mail do usuário
+      function displayUserEmail() {
+        google.script.run
+          .withSuccessHandler(function(email) {
+            userEmailDisplay.textContent = email;
+          })
+          .withFailureHandler(function(error) {
+            userEmailDisplay.textContent = 'Erro ao carregar e-mail.';
+            console.error('Erro ao carregar e-mail do usuário:', error.message);
+          })
+          .getUserEmail();
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        lerDadosExistentes();
+        lerDadosDashboard();
+        loadAssuntoSubAssuntoMap();
+        displayUserEmail(); // Chama a função para exibir o e-mail do usuário
+      });
+    </script>
+  </body>
+</html>
