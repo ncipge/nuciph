@@ -791,7 +791,7 @@
             })
             .withFailureHandler(function(error) {
               toggleSpinner('modalLoadingSpinner', false); // Esconde o spinner
-              showMessage('modalResponseMessage', 'Erro ao atualizar dados: ' + error.message, 'error');
+              showSpecificError(error);
             })
             .atualizarDadosWeb(rowIndexToEdit, data);
         } else { // Modo de Adição
@@ -812,7 +812,7 @@
             })
             .withFailureHandler(function(error) {
               toggleSpinner('modalLoadingSpinner', false); // Esconde o spinner
-              showMessage('modalResponseMessage', 'Erro ao gravar dados: ' + error.message, 'error');
+              showSpecificError(error);
             })
             .gravarDadosWeb(data);
         }
@@ -908,7 +908,7 @@
           .withFailureHandler(function(error) {
             toggleSpinner('refreshSpinner', false);
             toggleSpinner('filterSpinner', false);
-            showMessage('readMessage', 'Erro ao ler dados: ' + error.message, 'error');
+            showSpecificError(error);
             // Colspan ajustado para 15
             dataTableBody.innerHTML = '<tr><td colspan="15" class="text-center py-4 text-red-500">Erro ao carregar dados.</td></tr>';
             updatePaginationControls();
@@ -925,7 +925,7 @@
             updateDashboard();
           })
           .withFailureHandler(function(error) {
-            console.error('Erro ao carregar dados para o dashboard:', error.message);
+            showSpecificError(error);
             document.getElementById('dashboardTotalRecords').textContent = 'Erro';
             document.getElementById('dashboardStatusAnalisado').textContent = 'Erro';
             document.getElementById('dashboardRecentRecords').textContent = 'Erro';
@@ -992,7 +992,7 @@
             populateSubAssuntoDropdown(filterSubAssuntoSelect, [], 'Todos', true);
           })
           .withFailureHandler(function(error) {
-            console.error('Erro ao carregar mapeamento de Assunto/Sub Assunto:', error.message);
+            showSpecificError(error);
           })
           .getAssuntoSubAssuntoMap();
       }
@@ -1004,8 +1004,8 @@
             userEmailDisplay.textContent = email;
           })
           .withFailureHandler(function(error) {
+            showSpecificError(error);
             userEmailDisplay.textContent = 'Erro ao carregar e-mail.';
-            console.error('Erro ao carregar e-mail do usuário:', error.message);
           })
           .getUserEmail();
       }
@@ -1081,7 +1081,7 @@
                     }
                   })
                   .withFailureHandler(function(error) {
-                    showMessage('readMessage', 'Erro ao deletar registro: ' + error.message, 'error');
+                    showSpecificError(error);
                   })
                   .deletarRegistroWeb(actualSheetRowIndex);
               }
@@ -1116,6 +1116,31 @@
           });
         });
       });
+
+      // 1. Função utilitária para exibir mensagens de erro específicas
+      function showSpecificError(error) {
+        let msg = 'Erro desconhecido.';
+        if (typeof error === 'string') {
+          msg = error;
+        } else if (error && error.message) {
+          msg = error.message;
+        }
+        if (msg.includes('Aba "Dados" não encontrada')) {
+          showMessage('readMessage', 'Erro: A aba "Dados" não foi encontrada na planilha. Verifique se a aba existe ou peça ao administrador para criá-la.', 'error');
+        } else if (msg.includes('Aba "Config Usuarios" não encontrada')) {
+          showMessage('readMessage', 'Erro: A aba "Config Usuarios" não foi encontrada na planilha. Usuários não poderão acessar o sistema até que ela seja criada.', 'error');
+        } else if (msg.includes('Aba "Config Assuntos" não encontrada')) {
+          showMessage('readMessage', 'Erro: A aba "Config Assuntos" não foi encontrada na planilha. O cadastro de assuntos e subassuntos ficará indisponível.', 'error');
+        } else if (msg.includes('Acesso negado')) {
+          showMessage('readMessage', 'Acesso negado: seu e-mail não está autorizado a acessar este sistema.', 'error');
+        } else if (msg.includes('Erro ao gravar dados')) {
+          showMessage('modalResponseMessage', msg, 'error');
+        } else if (msg.includes('Erro ao atualizar dados')) {
+          showMessage('modalResponseMessage', msg, 'error');
+        } else {
+          showMessage('readMessage', 'Erro: ' + msg, 'error');
+        }
+      }
     </script>
   </body>
 </html>
