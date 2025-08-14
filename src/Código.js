@@ -369,50 +369,66 @@ function lerTodosOsDadosWebSemPaginacao() {
     var aba = planilha.getSheetByName('DadosTeste');
 
     if (aba == null) {
-      Logger.log('A aba "Dados" não foi encontrada. Retornando array vazio e 0 registros para dashboard.');
-      return { data: [], totalRecords: 0 };
+      Logger.log('A aba "Dados" não foi encontrada. Retornando 0 para todos os totais do dashboard.');
+      return {
+        totalRecords: 0,
+        statusAnalisado: 0,
+        recentRecords: 0
+      };
     }
     Logger.log('Aba "Dados" encontrada para dashboard.');
 
     var ultimaLinha = aba.getLastRow();
     var ultimaColuna = aba.getLastColumn();
-
-    // Ajustar o número de colunas para 14 (assumindo que a planilha tem 14 colunas agora)
     var numColunasEsperadas = 14;
     if (ultimaColuna < numColunasEsperadas) {
         Logger.log('Atenção: A planilha tem menos colunas do que o esperado. Lendo até a última coluna disponível.');
-        ultimaColuna = numColunasEsperadas; // Garante que o range lido tenha o número correto de colunas
+        ultimaColuna = numColunasEsperadas;
     }
-
     if (ultimaLinha < 2 || ultimaColuna === 0) {
-      Logger.log('Planilha "Dados" está vazia ou contém apenas cabeçalho ou não há colunas. Retornando array vazio para dashboard.');
-      return { data: [], totalRecords: 0 };
+      Logger.log('Planilha "Dados" está vazia ou contém apenas cabeçalho ou não há colunas. Retornando 0 para todos os totais do dashboard.');
+      return {
+        totalRecords: 0,
+        statusAnalisado: 0,
+        recentRecords: 0
+      };
     }
 
     // Obtém todos os valores da planilha, exceto a primeira linha (cabeçalho)
     var dadosBrutos = aba.getRange(2, 1, ultimaLinha - 1, ultimaColuna).getValues();
+    var totalRecords = dadosBrutos.length;
 
-    // Processa os dados para garantir que as datas sejam strings ISO 8601
-    var dadosProcessados = dadosBrutos.map(function(row) {
-      return row.map(function(cell) {
-        if (cell instanceof Date) {
-          // Adiciona 1 dia e formata como dd/mm/aaaa
-          var novaData = new Date(cell.getTime());
-          novaData.setDate(novaData.getDate() + 1);
-          var dia = novaData.getDate().toString().padStart(2, '0');
-          var mes = (novaData.getMonth() + 1).toString().padStart(2, '0');
-          var ano = novaData.getFullYear();
-          return dia + '/' + mes + '/' + ano;
-        }
-        return cell;
-      });
-    });
+    // Contar quantos registros têm status "Analisado"
+    var statusColIndex = 0; // Coluna A = Status
+    var statusAnalisado = dadosBrutos.filter(function(row) {
+      return row[statusColIndex] && row[statusColIndex].toString().toLowerCase() === 'analisado';
+    }).length;
 
-    Logger.log('Dados lidos para dashboard com sucesso. Número de linhas: ' + dadosProcessados.length);
-    return { data: dadosProcessados, totalRecords: dadosProcessados.length };
+    // Contar quantos registros têm data de entrada nos últimos 30 dias
+    var entradaColIndex = 4; // Coluna E = Entrada
+    var hoje = new Date();
+    var trintaDiasAtras = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
+    var recentRecords = dadosBrutos.filter(function(row) {
+      var dataEntrada = row[entradaColIndex];
+      if (dataEntrada instanceof Date) {
+        return dataEntrada >= trintaDiasAtras && dataEntrada <= hoje;
+      }
+      return false;
+    }).length;
+
+    Logger.log('Dashboard: totalRecords=' + totalRecords + ', statusAnalisado=' + statusAnalisado + ', recentRecords=' + recentRecords);
+    return {
+      totalRecords: totalRecords,
+      statusAnalisado: statusAnalisado,
+      recentRecords: recentRecords
+    };
   } catch (e) {
     Logger.log('Erro ao ler dados para dashboard: ' + e.toString());
-    return { data: [], totalRecords: 0 };
+    return {
+      totalRecords: 0,
+      statusAnalisado: 0,
+      recentRecords: 0
+    };
   }
 }
 
