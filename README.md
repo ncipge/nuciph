@@ -4,9 +4,28 @@ Este projeto é um sistema de manipulação de dados em planilhas Google, com in
 
 ## Estrutura do Projeto
 
-- `src/` - Código-fonte do Apps Script
-  - `Código.js` - Script principal
-  - `index.html` - Interface web
+
+## Ambientes
+
+- `src/` - Ambiente de produção
+   - Contém o código que está em uso no sistema oficial do Google Apps Script (GAS).
+- `src-homologacao/` - Ambiente de homologação
+   - Utilizado para testes, validações e ajustes antes de publicar no ambiente de produção.
+
+Cada ambiente possui seus próprios arquivos:
+   - `Código.js` - Script principal
+   - `index.html` - Interface web
+   - `appsscript.json` - Configuração do projeto Apps Script
+   - `.clasp.json` - Configuração do Clasp (apenas se necessário)
+
+## Estrutura do Projeto
+
+- `src/` - Código-fonte do Apps Script (produção)
+   - `Código.js` - Script principal
+   - `index.html` - Interface web
+- `src-homologacao/` - Código-fonte do Apps Script (homologação)
+   - `Código.js` - Script principal
+   - `index.html` - Interface web
 - `appsscript.json` - Configuração do projeto Apps Script
 - `.clasp.json` - Configuração do Clasp
 
