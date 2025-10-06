@@ -274,6 +274,116 @@
       display: none;
     }
 
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #64748b;
+      cursor: pointer;
+      padding: 0.5rem;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+
+    .close-btn:hover {
+      color: #1e293b;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      padding: 0.75rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-group-full {
+      grid-column: 1 / -1;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      padding-top: 1rem;
+      border-top: 2px solid #e2e8f0;
+    }
+
     @media (max-width: 768px) {
       .header-content {
         flex-direction: column;
@@ -292,10 +402,123 @@
         flex: 1;
         justify-content: center;
       }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-content {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
+  <div id="addModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Adicionar Novo Registro</h3>
+        <button class="close-btn" onclick="closeAddModal()">&times;</button>
+      </div>
+
+      <form id="addForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Sistema *</label>
+            <select id="sistema" class="form-select" required>
+              <option value="">Selecione</option>
+              <option value="PAE 3.0">PAE 3.0</option>
+              <option value="PAE 4.0">PAE 4.0</option>
+              <option value="SAJ/ATTUS">SAJ/ATTUS</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Núm. PAE/SAJ *</label>
+            <input type="text" id="numPaejSaj" class="form-input" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Interessado *</label>
+            <input type="text" id="interessado" class="form-input" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Entrada *</label>
+            <input type="date" id="entrada" class="form-input" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Situação *</label>
+            <select id="situacao" class="form-select" required>
+              <option value="">Selecione</option>
+              <option value="Conforme">Conforme</option>
+              <option value="Parcialmente Conforme">Parcialmente Conforme</option>
+              <option value="Assimetrias">Assimetrias</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Assimetria</label>
+            <select id="assimetria" class="form-select">
+              <option value="">Selecione</option>
+              <option value="DESACORDO LEGAL">DESACORDO LEGAL</option>
+              <option value="FALTA DE DOCUMENTO">FALTA DE DOCUMENTO</option>
+              <option value="PRAZO">PRAZO</option>
+              <option value="ESCLARECIMENTO">ESCLARECIMENTO</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">UG Origem</label>
+            <input type="text" id="ugOrigem" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Assunto</label>
+            <select id="assunto" class="form-select">
+              <option value="">Selecione</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Sub Assunto</label>
+            <select id="subAssunto" class="form-select" disabled>
+              <option value="">Selecione</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ACI Responsável</label>
+            <input type="text" id="aciResponsavel" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Destino</label>
+            <input type="text" id="destino" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Saída</label>
+            <input type="date" id="saida" class="form-input">
+          </div>
+
+          <div class="form-group form-group-full">
+            <label class="form-label">Observação</label>
+            <textarea id="observacao" class="form-textarea"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancelar</button>
+          <button type="submit" class="btn btn-success" id="submitBtn">Salvar Registro</button>
+        </div>
+      </form>
+
+      <div id="modalMessage" class="hidden"></div>
+    </div>
+  </div>
+
   <div class="container">
     <div class="header">
       <div class="header-content">
@@ -383,6 +606,11 @@
     const addBtn = document.getElementById('addBtn');
     const messageBox = document.getElementById('messageBox');
     const userEmail = document.getElementById('userEmail');
+    const addModal = document.getElementById('addModal');
+    const addForm = document.getElementById('addForm');
+    const modalMessage = document.getElementById('modalMessage');
+
+    let assuntoSubAssuntoMap = {};
 
     function showMessage(message, type) {
       messageBox.textContent = message;
@@ -390,6 +618,15 @@
       messageBox.classList.remove('hidden');
       setTimeout(() => {
         messageBox.classList.add('hidden');
+      }, 5000);
+    }
+
+    function showModalMessage(message, type) {
+      modalMessage.textContent = message;
+      modalMessage.className = `message message-${type}`;
+      modalMessage.classList.remove('hidden');
+      setTimeout(() => {
+        modalMessage.classList.add('hidden');
       }, 5000);
     }
 
@@ -402,6 +639,63 @@
           userEmail.textContent = 'Não disponível';
         })
         .getUserEmail();
+    }
+
+    function loadAssuntoSubAssuntoMap() {
+      google.script.run
+        .withSuccessHandler(function(map) {
+          assuntoSubAssuntoMap = map;
+          populateAssuntoDropdown();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Erro ao carregar assuntos:', error);
+        })
+        .getAssuntoSubAssuntoMap();
+    }
+
+    function populateAssuntoDropdown() {
+      const assuntoSelect = document.getElementById('assunto');
+      assuntoSelect.innerHTML = '<option value="">Selecione</option>';
+
+      Object.keys(assuntoSubAssuntoMap).sort().forEach(assunto => {
+        const option = document.createElement('option');
+        option.value = assunto;
+        option.textContent = assunto;
+        assuntoSelect.appendChild(option);
+      });
+    }
+
+    function updateSubAssuntoDropdown() {
+      const assuntoSelect = document.getElementById('assunto');
+      const subAssuntoSelect = document.getElementById('subAssunto');
+      const selectedAssunto = assuntoSelect.value;
+
+      subAssuntoSelect.innerHTML = '<option value="">Selecione</option>';
+
+      if (selectedAssunto && assuntoSubAssuntoMap[selectedAssunto]) {
+        const subAssuntos = assuntoSubAssuntoMap[selectedAssunto];
+        subAssuntos.sort().forEach(subAssunto => {
+          const option = document.createElement('option');
+          option.value = subAssunto;
+          option.textContent = subAssunto;
+          subAssuntoSelect.appendChild(option);
+        });
+        subAssuntoSelect.disabled = false;
+      } else {
+        subAssuntoSelect.disabled = true;
+      }
+    }
+
+    function openAddModal() {
+      addModal.classList.remove('hidden');
+      addForm.reset();
+      document.getElementById('entrada').valueAsDate = new Date();
+      modalMessage.classList.add('hidden');
+    }
+
+    function closeAddModal() {
+      addModal.classList.add('hidden');
+      addForm.reset();
     }
 
     function loadData() {
@@ -541,12 +835,65 @@
 
     refreshBtn.addEventListener('click', loadData);
 
-    addBtn.addEventListener('click', function() {
-      showMessage('Funcionalidade de adicionar registro em desenvolvimento', 'error');
+    addBtn.addEventListener('click', openAddModal);
+
+    document.getElementById('assunto').addEventListener('change', updateSubAssuntoDropdown);
+
+    addForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Salvando...';
+
+      const formData = {
+        sistema: document.getElementById('sistema').value,
+        numPaejSaj: document.getElementById('numPaejSaj').value,
+        interessado: document.getElementById('interessado').value,
+        entrada: document.getElementById('entrada').value,
+        situacao: document.getElementById('situacao').value,
+        assimetria: document.getElementById('assimetria').value,
+        observacao: document.getElementById('observacao').value,
+        ugOrigem: document.getElementById('ugOrigem').value,
+        assunto: document.getElementById('assunto').value,
+        subAssunto: document.getElementById('subAssunto').value,
+        aciResponsavel: document.getElementById('aciResponsavel').value,
+        destino: document.getElementById('destino').value,
+        saida: document.getElementById('saida').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Salvar Registro';
+
+          if (response.sucesso) {
+            showModalMessage(response.mensagem, 'success');
+            setTimeout(() => {
+              closeAddModal();
+              loadData();
+            }, 1500);
+          } else {
+            showModalMessage(response.mensagem, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Salvar Registro';
+          showModalMessage('Erro ao salvar: ' + error, 'error');
+        })
+        .gravarDadosWeb(formData);
+    });
+
+    addModal.addEventListener('click', function(e) {
+      if (e.target === addModal) {
+        closeAddModal();
+      }
     });
 
     document.addEventListener('DOMContentLoaded', function() {
       loadUserEmail();
+      loadAssuntoSubAssuntoMap();
       loadData();
     });
   </script>
