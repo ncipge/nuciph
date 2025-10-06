@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>Gerenciador de Dados da Planilha</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              'inter': ['Inter', 'sans-serif'],
+            },
+            colors: {
+              primary: {
+                50: '#eff6ff',
+                100: '#dbeafe',
+                200: '#bfdbfe',
+                300: '#93c5fd',
+                400: '#60a5fa',
+                500: '#3b82f6',
+                600: '#2563eb',
+                700: '#1d4ed8',
+                800: '#1e40af',
+                900: '#1e3a8a',
+              },
+              gray: {
+                50: '#f9fafb',
+                100: '#f3f4f6',
+                200: '#e5e7eb',
+                300: '#d1d5db',
+                400: '#9ca3af',
+                500: '#6b7280',
+                600: '#4b5563',
+                700: '#374151',
+                800: '#1f2937',
+                900: '#111827',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #374151;
+      }
+
+      .main-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        margin: 2rem;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .header-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.3;
+      }
+
+      .header-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .user-info {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+        overflow: hidden;
+      }
+
+      .card:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+      }
+
+      .card-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .search-container {
+        position: relative;
+        max-width: 400px;
+        margin-left: auto;
+      }
+
+      .search-input {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 0.75rem 1rem 0.75rem 3rem;
+        width: 100%;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+      }
+
+      .search-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+      }
+
+      .filter-card {
+        margin-bottom: 1.5rem;
+      }
+
+      .filter-toggle {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .filter-toggle:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+      }
+
+      .form-input, .form-select {
+        background: #f9fafb;
+        border: 2px solid #e5e7eb;
+        color: #374151;
+        font-size: 0.95rem;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        width: 100%;
+        transition: all 0.3s ease;
+      }
+
+      .form-input:focus, .form-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+        background: white;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+      }
+
+      .btn-primary:hover {
+        box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        color: #374151;
+        border: 1px solid #d1d5db;
+      }
+
+      .btn-secondary:hover {
+        background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+      }
+
+      .btn-danger:hover {
+        box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.4);
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+      }
+
+      .btn-success:hover {
+        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
+      }
+
+      .table-container {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+      }
+
+      .table-wrapper {
+        max-height: 70vh;
+        overflow-y: auto;
+        overflow-x: auto;
+      }
+
+      .tabela-dados {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .tabela-dados thead th {
+        position: sticky !important;
+        top: 0;
+        z-index: 2;
+        background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+        color: white;
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 1rem 0.75rem;
+        border-bottom: 2px solid #4b5563;
+      }
+
+      .tabela-dados tbody tr {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f3f4f6;
+      }
+
+      .tabela-dados tbody tr:nth-child(even) {
+        background: #f8fafc;
+      }
+
+      .tabela-dados tbody tr:hover {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        transform: scale(1.01);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .tabela-dados td {
+        font-size: 0.9rem;
+        color: #4b5563;
+        padding: 1rem 0.75rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+      }
+
+      .tabela-dados th.sortable {
+        cursor: pointer;
+        position: relative;
+        user-select: none;
+      }
+
+      .tabela-dados th.sortable:hover {
+        background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+      }
+
+      .tabela-dados th.sorted-asc::after {
+        content: ' ↑';
+        font-size: 1rem;
+        color: #3b82f6;
+      }
+
+      .tabela-dados th.sorted-desc::after {
+        content: ' ↓';
+        font-size: 1rem;
+        color: #3b82f6;
+      }
+
+      .pagination-container {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .page-info {
+        background: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+      }
+
+      .message-box {
+        padding: 1rem;
+        border-radius: 12px;
+        font-weight: 500;
+        margin: 1rem 0;
+        border-left: 4px solid;
+      }
+
+      .message-box.success {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #065f46;
+        border-left-color: #10b981;
+      }
+
+      .message-box.error {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #991b1b;
+        border-left-color: #ef4444;
+      }
+
+      .loading-spinner {
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #3b82f6;
+        border-radius: 50%;
+        width: 1.25rem;
+        height: 1.25rem;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 50;
+        padding: 1rem;
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        max-width: 1200px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        margin: -2rem -2rem 2rem -2rem;
+        border-radius: 20px 20px 0 0;
+        position: relative;
+      }
+
+      .modal-close-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1.5rem;
+        font-size: 1.5rem;
+        color: white;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+      }
+
+      .modal-close-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .status-conforme {
+        background: #d1fae5;
+        color: #065f46;
+      }
+
+      .status-parcial {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .status-inconforme {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .footer {
+        background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+        color: white;
+        text-align: center;
+        padding: 2rem;
+        margin-top: 3rem;
+        border-radius: 20px;
+        font-weight: 600;
+      }
+
+      @media (max-width: 768px) {
+        .main-container {
+          margin: 1rem;
+          padding: 1rem;
+          border-radius: 16px;
+        }
+
+        .header-section {
+          padding: 1.5rem;
+          border-radius: 16px;
+        }
+
+        .modal-content {
+          margin: 0.5rem;
+          padding: 1.5rem;
+          border-radius: 16px;
+        }
+
+        .modal-header {
+          margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+          padding: 1rem 1.5rem;
+          border-radius: 16px 16px 0 0;
+        }
+
+        .tabela-dados td {
+          max-width: 120px;
+          font-size: 0.8rem;
+        }
+      }
+
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .animate-slide-down {
+        animation: slideDown 0.3s ease-out;
+      }
+
+      @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <div class="main-container animate-fade-in">
+      <!-- Header Section -->
+      <div class="header-section">
+        <div class="header-content">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 class="text-3xl md:text-4xl font-bold mb-2">
+                <i class="fas fa-database mr-3"></i>
+                Gerenciador de Dados
+              </h1>
+              <p class="text-lg opacity-90">Sistema de controle e análise de processos</p>
+            </div>
+            <div class="user-info">
+              <div class="flex items-center gap-2">
+                <i class="fas fa-user-circle text-xl"></i>
+                <div>
+                  <p class="text-sm opacity-75">Usuário logado:</p>
+                  <p id="userEmailDisplay" class="font-semibold">Carregando...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Section -->
+      <div class="search-container mb-6">
+        <div class="relative">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            id="globalSearchInput" 
+            placeholder="Buscar em todos os campos..." 
+            class="search-input"
+          />
+        </div>
+      </div>
+
+      <!-- Filters Section -->
+      <div class="card filter-card">
+        <div class="card-header">
+          <div class="flex justify-between items-center cursor-pointer select-none" id="filterCardHeader">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <i class="fas fa-filter"></i>
+              Filtros Avançados
+            </h2>
+            <button type="button" id="toggleFilterCardBtn" class="filter-toggle">
+              <i class="fas fa-chevron-down transition-transform duration-300" id="filterChevron"></i>
+              Exibir Filtros
+            </button>
+          </div>
+        </div>
+        <div class="p-6" id="filterFormContainer" style="display: none;">
+          <form id="filterForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div class="form-group">
+              <label for="filterSistema">
+                <i class="fas fa-cogs mr-1"></i>
+                Sistema:
+              </label>
+              <select id="filterSistema" name="sistema" class="form-select">
+                <option value="">Todos</option>
+                <option value="PAE 3.0">PAE 3.0</option>
+                <option value="PAE 4.0">PAE 4.0</option>
+                <option value="SAJ/ATTUS">SAJ/ATTUS</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="filterNumPaejSaj">
+                <i class="fas fa-hashtag mr-1"></i>
+                Núm.PAE/SAJ:
+              </label>
+              <input type="text" id="filterNumPaejSaj" name="numPaejSaj" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="filterInteressado">
+                <i class="fas fa-user mr-1"></i>
+                Interessado:
+              </label>
+              <input type="text" id="filterInteressado" name="interessado" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="filterSituacao">
+                <i class="fas fa-flag mr-1"></i>
+                Situação:
+              </label>
+              <select id="filterSituacao" name="situacao" class="form-select">
+                <option value="">Todos</option>
+                <option value="CONFORME">CONFORME</option>
+                <option value="CONFORME PARCIAL">CONFORME PARCIAL</option>
+                <option value="INCONFORME">INCONFORME</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="filterAssimetria">
+                <i class="fas fa-exclamation-triangle mr-1"></i>
+                Assimetria:
+              </label>
+              <select id="filterAssimetria" name="assimetria" class="form-select">
+                <option value="">Todos</option>
+                <option value="DESACORDO LEGAL">DESACORDO LEGAL</option>
+                <option value="FALTA DE DOCUMENTO">FALTA DE DOCUMENTO</option>
+                <option value="PRAZO">PRAZO</option>
+                <option value="ESCLARECIMENTO">ESCLARECIMENTO</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="filterUgOrigem">
+                <i class="fas fa-building mr-1"></i>
+                UG Origem:
+              </label>
+              <input type="text" id="filterUgOrigem" name="ugOrigem" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="filterAssunto">
+                <i class="fas fa-tag mr-1"></i>
+                Assunto:
+              </label>
+              <select id="filterAssunto" name="assunto" class="form-select">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="filterSubAssunto">
+                <i class="fas fa-tags mr-1"></i>
+                Sub Assunto:
+              </label>
+              <select id="filterSubAssunto" name="subAssunto" class="form-select" disabled>
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="filterAciResponsavel">
+                <i class="fas fa-user-tie mr-1"></i>
+                ACI Responsável:
+              </label>
+              <input type="text" id="filterAciResponsavel" name="aciResponsavel" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="filterDestino">
+                <i class="fas fa-map-marker-alt mr-1"></i>
+                Destino:
+              </label>
+              <input type="text" id="filterDestino" name="destino" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="filterSaidaInicio">
+                <i class="fas fa-calendar-alt mr-1"></i>
+                Saída (de):
+              </label>
+              <input type="date" id="filterSaidaInicio" name="saidaInicio" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="filterSaidaFim">
+                <i class="fas fa-calendar-alt mr-1"></i>
+                Saída (até):
+              </label>
+              <input type="date" id="filterSaidaFim" name="saidaFim" class="form-input">
+            </div>
+            <div class="flex gap-3 col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4 mt-4">
+              <button type="button" id="applyFiltersBtn" class="btn btn-primary">
+                <i class="fas fa-search"></i>
+                Aplicar Filtros
+                <span id="filterSpinner" class="loading-spinner hidden ml-2"></span>
+              </button>
+              <button type="button" id="clearFiltersBtn" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Limpar Filtros
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Data Table Section -->
+      <div class="card">
+        <div class="card-header">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <i class="fas fa-table"></i>
+              Dados da Planilha
+            </h2>
+            <div class="flex gap-3">
+              <button id="refreshDataBtn" class="btn btn-secondary">
+                <i class="fas fa-sync-alt"></i>
+                Atualizar
+                <span id="refreshSpinner" class="loading-spinner hidden ml-2"></span>
+              </button>
+              <button id="openAddRecordModalBtn" class="btn btn-success">
+                <i class="fas fa-plus"></i>
+                Novo Registro
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <div class="table-wrapper" id="dataContainer">
+            <table class="tabela-dados">
+              <thead>
+                <tr>
+                  <th class="sortable" data-field="sistema">
+                    <i class="fas fa-cogs mr-1"></i>Sistema
+                  </th>
+                  <th class="sortable" data-field="numPaejSaj">
+                    <i class="fas fa-hashtag mr-1"></i>Núm.PAE/SAJ
+                  </th>
+                  <th class="sortable" data-field="interessado">
+                    <i class="fas fa-user mr-1"></i>Interessado
+                  </th>
+                  <th class="sortable" data-field="entrada">
+                    <i class="fas fa-calendar-plus mr-1"></i>Entrada
+                  </th>
+                  <th class="sortable" data-field="situacao">
+                    <i class="fas fa-flag mr-1"></i>Situação
+                  </th>
+                  <th class="sortable" data-field="assimetria">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>Assimetria
+                  </th>
+                  <th>
+                    <i class="fas fa-comment mr-1"></i>Observação
+                  </th>
+                  <th class="sortable" data-field="ugOrigem">
+                    <i class="fas fa-building mr-1"></i>UG Origem
+                  </th>
+                  <th class="sortable" data-field="assunto">
+                    <i class="fas fa-tag mr-1"></i>Assunto
+                  </th>
+                  <th class="sortable" data-field="subAssunto">
+                    <i class="fas fa-tags mr-1"></i>Sub Assunto
+                  </th>
+                  <th class="sortable" data-field="aciResponsavel">
+                    <i class="fas fa-user-tie mr-1"></i>ACI Responsável
+                  </th>
+                  <th class="sortable" data-field="destino">
+                    <i class="fas fa-map-marker-alt mr-1"></i>Destino
+                  </th>
+                  <th class="sortable" data-field="saida">
+                    <i class="fas fa-calendar-minus mr-1"></i>Saída
+                  </th>
+                  <th>
+                    <i class="fas fa-cog mr-1"></i>Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="dataTableBody">
+                <tr>
+                  <td colspan="14" class="text-center py-8 text-gray-500">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <br>Carregando dados...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="pagination-container">
+            <button id="prevPageBtn" class="btn btn-secondary" disabled>
+              <i class="fas fa-chevron-left"></i>
+              Anterior
+            </button>
+            <div class="page-info" id="pageInfo">Página 1 de 1</div>
+            <button id="nextPageBtn" class="btn btn-secondary" disabled>
+              Próximo
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div id="readMessage" class="message-box hidden"></div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p>
+          <i class="fas fa-code mr-2"></i>
+          Desenvolvido por <strong>DTIGD</strong> © 2025
+        </p>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="recordModal" class="modal-overlay hidden">
+      <div class="modal-content animate-fade-in">
+        <div class="modal-header">
+          <h2 id="modalTitle" class="text-2xl font-bold flex items-center gap-2">
+            <i class="fas fa-plus-circle"></i>
+            Adicionar Novo Registro
+          </h2>
+          <button id="closeModalBtn" class="modal-close-btn">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <form id="recordFormModal" class="space-y-6">
+          <input type="hidden" id="recordRowIndex" name="rowIndex">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div class="form-group">
+              <label for="modalSistema">
+                <i class="fas fa-cogs mr-1"></i>
+                Sistema:
+              </label>
+              <select id="modalSistema" name="sistema" class="form-select">
+                <option value="">Selecione</option>
+                <option value="PAE 3.0">PAE 3.0</option>
+                <option value="PAE 4.0">PAE 4.0</option>
+                <option value="SAJ/ATTUS">SAJ/ATTUS</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="modalNumPaejSaj">
+                <i class="fas fa-hashtag mr-1"></i>
+                Núm.PAE/SAJ:
+              </label>
+              <input type="text" id="modalNumPaejSaj" name="numPaejSaj" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="modalInteressado">
+                <i class="fas fa-user mr-1"></i>
+                Interessado:
+              </label>
+              <input type="text" id="modalInteressado" name="interessado" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="modalEntrada">
+                <i class="fas fa-calendar-plus mr-1"></i>
+                Entrada:
+              </label>
+              <input type="date" id="modalEntrada" name="entrada" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="modalSituacao">
+                <i class="fas fa-flag mr-1"></i>
+                Situação:
+              </label>
+              <select id="modalSituacao" name="situacao" class="form-select">
+                <option value="">Selecione</option>
+                <option value="Conforme">Conforme</option>
+                <option value="Parcialmente Conforme">Parcialmente Conforme</option>
+                <option value="Assimetrias">Assimetrias</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="modalAssimetria">
+                <i class="fas fa-exclamation-triangle mr-1"></i>
+                Assimetria:
+              </label>
+              <select id="modalAssimetria" name="assimetria" class="form-select">
+                <option value="">Selecione</option>
+                <option value="DESACORDO LEGAL">DESACORDO LEGAL</option>
+                <option value="FALTA DE DOCUMENTO">FALTA DE DOCUMENTO</option>
+                <option value="PRAZO">PRAZO</option>
+                <option value="ESCLARECIMENTO">ESCLARECIMENTO</option>
+              </select>
+            </div>
+            <div class="form-group xl:col-span-2">
+              <label for="modalObservacao">
+                <i class="fas fa-comment mr-1"></i>
+                Observação:
+              </label>
+              <textarea id="modalObservacao" name="observacao" rows="3" class="form-input resize-none"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="modalUgOrigem">
+                <i class="fas fa-building mr-1"></i>
+                UG Origem:
+              </label>
+              <input type="text" id="modalUgOrigem" name="ugOrigem" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="modalAssunto">
+                <i class="fas fa-tag mr-1"></i>
+                Assunto:
+              </label>
+              <select id="modalAssunto" name="assunto" class="form-select">
+                <option value="">Selecione</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="modalSubAssunto">
+                <i class="fas fa-tags mr-1"></i>
+                Sub Assunto:
+              </label>
+              <select id="modalSubAssunto" name="subAssunto" class="form-select" disabled>
+                <option value="">Selecione</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="modalAciResponsavel">
+                <i class="fas fa-user-tie mr-1"></i>
+                ACI Responsável:
+              </label>
+              <input type="text" id="modalAciResponsavel" name="aciResponsavel" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="modalDestino">
+                <i class="fas fa-map-marker-alt mr-1"></i>
+                Destino:
+              </label>
+              <input type="text" id="modalDestino" name="destino" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="modalSaida">
+                <i class="fas fa-calendar-minus mr-1"></i>
+                Saída:
+              </label>
+              <input type="date" id="modalSaida" name="saida" class="form-input">
+            </div>
+          </div>
+          
+          <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+            <button type="button" onclick="closeRecordModal()" class="btn btn-secondary">
+              <i class="fas fa-times"></i>
+              Cancelar
+            </button>
+            <button type="submit" id="modalSubmitBtn" class="btn btn-primary">
+              <i class="fas fa-save"></i>
+              Gravar Registro
+              <span id="modalLoadingSpinner" class="loading-spinner hidden ml-2"></span>
+            </button>
+          </div>
+          
+          <div id="modalResponseMessage" class="message-box hidden"></div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Variáveis de Paginação
+      let currentPage = 1;
+      const pageSize = 20;
+      let totalRecords = 0;
+      let totalPages = 1;
+      let currentFilters = {};
+
+      // Variáveis do Dashboard
+      let allDataForDashboard = [];
+      let currentTableData = [];
+
+      // Referências aos elementos do modal
+      const recordModal = document.getElementById('recordModal');
+      const openAddRecordModalBtn = document.getElementById('openAddRecordModalBtn');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const recordFormModal = document.getElementById('recordFormModal');
+      const modalLoadingSpinner = document.getElementById('modalLoadingSpinner');
+      const modalResponseMessage = document.getElementById('modalResponseMessage');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+
+      // Referência ao campo oculto para o índice da linha
+      const recordRowIndex = document.getElementById('recordRowIndex');
+
+      // Referências aos campos Sistema e Num. PAEJ S.A.J.
+      const modalSistemaSelect = document.getElementById('modalSistema');
+      const modalNumPaejSajInput = document.getElementById('modalNumPaejSaj');
+      const sistemaSelectFilter = document.getElementById('filterSistema');
+
+      // Referências para os campos Situação e Assimetria no modal
+      const modalSituacaoSelect = document.getElementById('modalSituacao');
+      const modalAssimetriaSelect = document.getElementById('modalAssimetria');
+
+      // Referências para os campos Assunto e Sub Assunto
+      const modalAssuntoSelect = document.getElementById('modalAssunto');
+      const modalSubAssuntoSelect = document.getElementById('modalSubAssunto');
+      const filterAssuntoSelect = document.getElementById('filterAssunto');
+      const filterSubAssuntoSelect = document.getElementById('filterSubAssunto');
+
+      // Referências para os novos campos
+      const modalAciResponsavelInput = document.getElementById('modalAciResponsavel');
+      const modalDestinoInput = document.getElementById('modalDestino');
+      const modalSaidaInput = document.getElementById('modalSaida');
+
+      const filterAciResponsavelInput = document.getElementById('filterAciResponsavel');
+      const filterDestinoInput = document.getElementById('filterDestino');
+      const filterSaidaInput = document.getElementById('filterSaida');
+
+      // Referência para exibir o e-mail do usuário
+      const userEmailDisplay = document.getElementById('userEmailDisplay');
+
+      let assuntoSubAssuntoMap = {};
+
+      // Nomes dos campos do formulário
+      const formFields = [
+        'sistema', 'numPaejSaj', 'interessado', 'entrada', 'situacao',
+        'assimetria', 'observacao', 'ugOrigem', 'assunto', 'subAssunto',
+        'aciResponsavel', 'destino', 'saida'
+      ];
+
+      // Mapeamento dos nomes dos campos para os índices das colunas
+      const sheetColumnIndexes = {
+        sistema: 0,
+        numPaejSaj: 1,
+        interessado: 2,
+        entrada: 3,
+        situacao: 4,
+        assimetria: 5,
+        observacao: 6,
+        ugOrigem: 7,
+        assunto: 8,
+        subAssunto: 9,
+        aciResponsavel: 10,
+        destino: 11,
+        saida: 12
+      };
+
+      // Toggle do card de filtros
+      document.getElementById('toggleFilterCardBtn').addEventListener('click', function() {
+        const filterForm = document.getElementById('filterFormContainer');
+        const chevron = document.getElementById('filterChevron');
+        const isHidden = filterForm.style.display === 'none';
+        
+        if (isHidden) {
+          filterForm.style.display = 'block';
+          filterForm.classList.add('animate-slide-down');
+          chevron.style.transform = 'rotate(180deg)';
+          this.innerHTML = '<i class="fas fa-chevron-up transition-transform duration-300"></i> Ocultar Filtros';
+        } else {
+          filterForm.style.display = 'none';
+          chevron.style.transform = 'rotate(0deg)';
+          this.innerHTML = '<i class="fas fa-chevron-down transition-transform duration-300"></i> Exibir Filtros';
+        }
+      });
+
+      // Função para exibir mensagens de status
+      function showMessage(elementId, message, type) {
+        const messageBox = document.getElementById(elementId);
+        messageBox.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>${message}`;
+        messageBox.className = `message-box ${type}`;
+        messageBox.classList.remove('hidden');
+      }
+
+      // Função para esconder mensagens de status
+      function hideMessage(elementId) {
+        const messageBox = document.getElementById(elementId);
+        if (messageBox) {
+          messageBox.classList.add('hidden');
+        }
+      }
+
+      // Função para mostrar ou esconder o spinner de carregamento
+      function toggleSpinner(spinnerId, show) {
+        const spinner = document.getElementById(spinnerId);
+        if (spinner) {
+          spinner.classList.toggle('hidden', !show);
+        }
+      }
+
+      // Atualiza os controles de paginação
+      function updatePaginationControls() {
+        document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
+        document.getElementById('prevPageBtn').disabled = currentPage === 1;
+        document.getElementById('nextPageBtn').disabled = currentPage === totalPages || totalRecords === 0;
+      }
+
+      // Funções para abrir e fechar o modal
+      function openRecordModal(mode, rowIndex = -1, rowData = null) {
+        recordModal.classList.remove('hidden');
+        hideMessage('modalResponseMessage');
+
+        if (mode === 'add') {
+          recordFormModal.reset();
+          modalTitle.innerHTML = '<i class="fas fa-plus-circle mr-2"></i>Adicionar Novo Registro';
+          modalSubmitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Gravar Registro';
+          recordRowIndex.value = '';
+          modalNumPaejSajInput.value = '';
+          modalNumPaejSajInput.placeholder = 'Selecione um Sistema para a máscara';
+          modalSistemaSelect.value = '';
+          updateAssimetriaFieldState();
+          populateAssuntoDropdown(modalAssuntoSelect, 'Selecione');
+          populateSubAssuntoDropdown(modalSubAssuntoSelect, [], 'Selecione', true);
+          document.getElementById('modalEntrada').value = new Date().toISOString().split('T')[0];
+        } else if (mode === 'edit' && rowData) {
+          modalTitle.innerHTML = '<i class="fas fa-edit mr-2"></i>Editar Registro';
+          modalSubmitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Atualizar Registro';
+          recordRowIndex.value = rowIndex;
+          
+          formFields.forEach(field => {
+            let inputElement = document.getElementById('modal' + field.charAt(0).toUpperCase() + field.slice(1));
+            if (field === 'numPaejSaj') inputElement = document.getElementById('modalNumPaejSaj');
+            if (field === 'aciResponsavel') inputElement = document.getElementById('modalAciResponsavel');
+            if (inputElement) {
+              const value = rowData[sheetColumnIndexes[field]];
+              if (inputElement.type === 'date') {
+                if (value && typeof value === 'string' && value.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T/)) {
+                  inputElement.value = value.split('T')[0];
+                } else {
+                  if (value instanceof Date && !isNaN(value)) {
+                    inputElement.value = value.toISOString().split('T')[0];
+                  } else {
+                    inputElement.value = '';
+                  }
+                }
+              } else if (inputElement.tagName === 'SELECT') {
+                inputElement.value = value;
+                if (field === 'assunto') {
+                  populateAssuntoDropdown(modalAssuntoSelect, 'Selecione');
+                  modalAssuntoSelect.value = value;
+                  updateSubAssuntoDropdown(modalAssuntoSelect, modalSubAssuntoSelect);
+                  modalSubAssuntoSelect.value = rowData[sheetColumnIndexes['subAssunto']];
+                }
+                if (field === 'situacao') {
+                  updateAssimetriaFieldState();
+                }
+                if (field === 'sistema') {
+                  updatePaejMask();
+                }
+              } else {
+                inputElement.value = value;
+              }
+            }
+          });
+          
+          if (modalSistemaSelect.value) {
+            updatePaejMask();
+            applyMask(modalNumPaejSajInput, masks[modalSistemaSelect.value]);
+          }
+        }
+      }
+
+      function closeRecordModal() {
+        recordModal.classList.add('hidden');
+      }
+
+      // Lógica de Máscara de Entrada
+      const masks = {
+        'PAE 3.0': '2025/00000000',
+        'PAE 4.0': 'E-2025/00000000',
+        'SAJ/ATTUS': '2020.01.00000000000'
+      };
+
+      function applyMask(inputElement, mask) {
+        if (!inputElement || !mask) return;
+
+        inputElement.placeholder = mask;
+        let current = inputElement.value;
+        let formatted = '';
+        let maskCharIndex = 0;
+        let valueCharIndex = 0;
+
+        while (maskCharIndex < mask.length && valueCharIndex < current.length) {
+          if (mask[maskCharIndex] === '0') {
+            if (/\d/.test(current[valueCharIndex])) {
+              formatted += current[valueCharIndex];
+              valueCharIndex++;
+            }
+            maskCharIndex++;
+          } else {
+            formatted += mask[maskCharIndex];
+            if (mask[maskCharIndex] === current[valueCharIndex]) {
+              valueCharIndex++;
+            }
+            maskCharIndex++;
+          }
+        }
+        inputElement.value = formatted;
+      }
+
+      function updatePaejMask() {
+        const selectedSystem = modalSistemaSelect.value;
+        const mask = masks[selectedSystem];
+        if (mask) {
+          modalNumPaejSajInput.placeholder = mask;
+        } else {
+          modalNumPaejSajInput.value = '';
+          modalNumPaejSajInput.placeholder = 'Selecione um Sistema para a máscara';
+        }
+      }
+
+      // Lógica de dependência entre Situação e Assimetria
+      function updateAssimetriaFieldState() {
+        const situacaoValue = modalSituacaoSelect.value;
+        if (situacaoValue === 'CONFORME') {
+          modalAssimetriaSelect.value = '';
+          modalAssimetriaSelect.disabled = true;
+          modalAssimetriaSelect.classList.add('opacity-50');
+        } else {
+          modalAssimetriaSelect.disabled = false;
+          modalAssimetriaSelect.classList.remove('opacity-50');
+        }
+      }
+
+      // Lógica de dependência entre Assunto e Sub Assunto
+      function populateAssuntoDropdown(dropdownElement, defaultOptionText = 'Selecione') {
+        dropdownElement.innerHTML = '';
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = defaultOptionText;
+        dropdownElement.appendChild(defaultOption);
+
+        const assuntos = Object.keys(assuntoSubAssuntoMap).sort();
+        assuntos.forEach(assunto => {
+          const option = document.createElement('option');
+          option.value = assunto;
+          option.textContent = assunto;
+          dropdownElement.appendChild(option);
+        });
+      }
+
+      function populateSubAssuntoDropdown(dropdownElement, subAssuntos, defaultOptionText = 'Selecione', disable = false) {
+        dropdownElement.innerHTML = '';
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = defaultOptionText;
+        dropdownElement.appendChild(defaultOption);
+
+        subAssuntos.sort().forEach(subAssunto => {
+          const option = document.createElement('option');
+          option.value = subAssunto;
+          option.textContent = subAssunto;
+          dropdownElement.appendChild(option);
+        });
+
+        dropdownElement.disabled = disable;
+        dropdownElement.classList.toggle('opacity-50', disable);
+      }
+
+      function updateSubAssuntoDropdown(assuntoSelectElement, subAssuntoSelectElement) {
+        const selectedAssunto = assuntoSelectElement.value;
+        const subAssuntos = assuntoSubAssuntoMap[selectedAssunto] || [];
+        
+        if (selectedAssunto === '') {
+          populateSubAssuntoDropdown(subAssuntoSelectElement, [], 'Selecione', true);
+        } else {
+          populateSubAssuntoDropdown(subAssuntoSelectElement, subAssuntos, 'Selecione', false);
+        }
+      }
+
+      // Event Listeners
+      modalSistemaSelect.addEventListener('change', updatePaejMask);
+      modalNumPaejSajInput.addEventListener('input', function() {
+        const selectedSystem = modalSistemaSelect.value;
+        const mask = masks[selectedSystem];
+        if (mask) {
+          applyMask(this, mask);
+        }
+      });
+
+      modalSituacaoSelect.addEventListener('change', updateAssimetriaFieldState);
+      modalAssuntoSelect.addEventListener('change', function() {
+        updateSubAssuntoDropdown(modalAssuntoSelect, modalSubAssuntoSelect);
+      });
+      filterAssuntoSelect.addEventListener('change', function() {
+        updateSubAssuntoDropdown(filterAssuntoSelect, filterSubAssuntoSelect);
+      });
+
+      // Envio do formulário
+      recordFormModal.addEventListener('submit', function(e) {
+        e.preventDefault();
+        hideMessage('modalResponseMessage');
+        toggleSpinner('modalLoadingSpinner', true);
+
+        const formData = new FormData(this);
+        const data = {};
+        for (let [key, value] of formData.entries()) {
+          data[key] = value;
+        }
+
+        const rowIndexToEdit = recordRowIndex.value;
+
+        if (rowIndexToEdit) {
+          google.script.run
+            .withSuccessHandler(function(response) {
+              toggleSpinner('modalLoadingSpinner', false);
+              if (response.sucesso) {
+                showMessage('modalResponseMessage', response.mensagem, 'success');
+                setTimeout(() => {
+                  closeRecordModal();
+                  lerDadosExistentes();
+                }, 1500);
+              } else {
+                showMessage('modalResponseMessage', response.mensagem, 'error');
+              }
+            })
+            .withFailureHandler(function(error) {
+              toggleSpinner('modalLoadingSpinner', false);
+              showSpecificError(error);
+            })
+            .atualizarDadosWeb(rowIndexToEdit, data);
+        } else {
+          google.script.run
+            .withSuccessHandler(function(response) {
+              toggleSpinner('modalLoadingSpinner', false);
+              if (response.sucesso) {
+                showMessage('modalResponseMessage', response.mensagem, 'success');
+                setTimeout(() => {
+                  closeRecordModal();
+                  currentPage = 1;
+                  lerDadosExistentes();
+                }, 1500);
+              } else {
+                showMessage('modalResponseMessage', response.mensagem, 'error');
+              }
+            })
+            .withFailureHandler(function(error) {
+              toggleSpinner('modalLoadingSpinner', false);
+              showSpecificError(error);
+            })
+            .gravarDadosWeb(data);
+        }
+      });
+
+      // Botões de controle
+      document.getElementById('refreshDataBtn').addEventListener('click', function() {
+        currentPage = 1;
+        lerDadosExistentes();
+      });
+
+      document.getElementById('prevPageBtn').addEventListener('click', function() {
+        if (currentPage > 1) {
+          currentPage--;
+          lerDadosExistentes();
+        }
+      });
+
+      document.getElementById('nextPageBtn').addEventListener('click', function() {
+        if (currentPage < totalPages) {
+          currentPage++;
+          lerDadosExistentes();
+        }
+      });
+
+      document.getElementById('applyFiltersBtn').addEventListener('click', function() {
+        hideMessage('readMessage');
+        toggleSpinner('filterSpinner', true);
+
+        const filterForm = document.getElementById('filterForm');
+        const formData = new FormData(filterForm);
+        currentFilters = {};
+        for (let [key, value] of formData.entries()) {
+          if (value) {
+            currentFilters[key] = value;
+          }
+        }
+        
+        const saidaInicio = formData.get('saidaInicio');
+        const saidaFim = formData.get('saidaFim');
+        if (saidaInicio) currentFilters.saidaInicio = saidaInicio;
+        if (saidaFim) currentFilters.saidaFim = saidaFim;
+
+        currentPage = 1;
+        lerDadosExistentes();
+      });
+
+      document.getElementById('clearFiltersBtn').addEventListener('click', function() {
+        document.getElementById('filterForm').reset();
+        populateAssuntoDropdown(filterAssuntoSelect, 'Todos');
+        populateSubAssuntoDropdown(filterSubAssuntoSelect, [], 'Todos', true);
+
+        currentFilters = {};
+        currentPage = 1;
+        lerDadosExistentes();
+      });
+
+      openAddRecordModalBtn.addEventListener('click', function() {
+        openRecordModal('add');
+      });
+      closeModalBtn.addEventListener('click', closeRecordModal);
+
+      // Função para ler dados existentes
+      function lerDadosExistentes() {
+        hideMessage('readMessage');
+        toggleSpinner('refreshSpinner', true);
+        toggleSpinner('filterSpinner', true);
+
+        const dataTableBody = document.getElementById('dataTableBody');
+        dataTableBody.innerHTML = '<tr><td colspan="14" class="text-center py-8 text-gray-500"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><br>Carregando dados...</td></tr>';
+
+        google.script.run
+          .withSuccessHandler(function(response) {
+            toggleSpinner('refreshSpinner', false);
+            toggleSpinner('filterSpinner', false);
+
+            currentTableData = response.data;
+            totalRecords = response.totalRecords;
+            totalPages = Math.ceil(totalRecords / pageSize);
+            if (totalPages === 0) totalPages = 1;
+
+            renderTableRows();
+            updatePaginationControls();
+          })
+          .withFailureHandler(function(error) {
+            toggleSpinner('refreshSpinner', false);
+            toggleSpinner('filterSpinner', false);
+            showSpecificError(error);
+            dataTableBody.innerHTML = '<tr><td colspan="14" class="text-center py-8 text-red-500"><i class="fas fa-exclamation-triangle text-2xl mb-2"></i><br>Erro ao carregar dados.</td></tr>';
+            updatePaginationControls();
+          })
+          .lerTodosOsDadosWeb(currentPage, pageSize, currentFilters);
+      }
+
+      function loadAssuntoSubAssuntoMap() {
+        google.script.run
+          .withSuccessHandler(function(map) {
+            assuntoSubAssuntoMap = map;
+            populateAssuntoDropdown(modalAssuntoSelect, 'Selecione');
+            populateAssuntoDropdown(filterAssuntoSelect, 'Todos');
+            populateSubAssuntoDropdown(modalSubAssuntoSelect, [], 'Selecione', true);
+            populateSubAssuntoDropdown(filterSubAssuntoSelect, [], 'Todos', true);
+          })
+          .withFailureHandler(function(error) {
+            showSpecificError(error);
+          })
+          .getAssuntoSubAssuntoMap();
+      }
+
+      function displayUserEmail() {
+        google.script.run
+          .withSuccessHandler(function(email) {
+            userEmailDisplay.textContent = email;
+          })
+          .withFailureHandler(function(error) {
+            showSpecificError(error);
+            userEmailDisplay.textContent = 'Erro ao carregar e-mail.';
+          })
+          .getUserEmail();
+      }
+
+      // Variáveis de controle de ordenação
+      let currentSortField = null;
+      let currentSortDirection = 'asc';
+
+      function sortTableData(field) {
+        if (currentSortField === field) {
+          currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          currentSortField = field;
+          currentSortDirection = 'asc';
+        }
+        
+        currentTableData.sort((a, b) => {
+          const idx = sheetColumnIndexes[field];
+          let valA = a[idx];
+          let valB = b[idx];
+          
+          if (field === 'entrada' || field === 'saida') {
+            valA = valA.split('/').reverse().join('-');
+            valB = valB.split('/').reverse().join('-');
+          }
+          
+          if (valA < valB) return currentSortDirection === 'asc' ? -1 : 1;
+          if (valA > valB) return currentSortDirection === 'asc' ? 1 : -1;
+          return 0;
+        });
+        
+        renderTableRows();
+        updateSortIndicators();
+      }
+
+      function renderTableRows() {
+        const dataTableBody = document.getElementById('dataTableBody');
+        dataTableBody.innerHTML = '';
+        
+        if (currentTableData && currentTableData.length > 0) {
+          currentTableData.forEach(function(linha, index) {
+            const row = dataTableBody.insertRow();
+            const actualSheetRowIndex = ((currentPage - 1) * pageSize) + index + 2;
+            
+            linha.forEach(function(celula, cellIndex) {
+              const cell = row.insertCell();
+              
+              // Aplicar badges de status para a coluna Situação
+              if (cellIndex === sheetColumnIndexes['situacao']) {
+                const badge = document.createElement('span');
+                badge.textContent = celula;
+                badge.className = 'status-badge';
+                
+                if (celula.toLowerCase().includes('conforme') && !celula.toLowerCase().includes('parcial')) {
+                  badge.classList.add('status-conforme');
+                } else if (celula.toLowerCase().includes('parcial')) {
+                  badge.classList.add('status-parcial');
+                } else {
+                  badge.classList.add('status-inconforme');
+                }
+                
+                cell.appendChild(badge);
+              } else {
+                cell.textContent = celula;
+              }
+            });
+            
+            // Célula de ações
+            const actionCell = row.insertCell();
+            actionCell.className = 'flex gap-2 justify-center';
+            
+            const editButton = document.createElement('button');
+            editButton.innerHTML = '<i class="fas fa-edit"></i>';
+            editButton.className = 'btn btn-secondary text-sm px-3 py-1';
+            editButton.title = 'Editar registro';
+            editButton.onclick = function() {
+              openRecordModal('edit', actualSheetRowIndex, linha);
+            };
+            actionCell.appendChild(editButton);
+            
+            const deleteButton = document.createElement('button');
+            deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteButton.className = 'btn btn-danger text-sm px-3 py-1';
+            deleteButton.title = 'Deletar registro';
+            deleteButton.onclick = function() {
+              if (confirm('Tem certeza que deseja deletar este registro?')) {
+                google.script.run
+                  .withSuccessHandler(function(response) {
+                    if (response.sucesso) {
+                      showMessage('readMessage', response.mensagem, 'success');
+                      lerDadosExistentes();
+                    } else {
+                      showMessage('readMessage', response.mensagem, 'error');
+                    }
+                  })
+                  .withFailureHandler(function(error) {
+                    showSpecificError(error);
+                  })
+                  .deletarRegistroWeb(actualSheetRowIndex);
+              }
+            };
+            actionCell.appendChild(deleteButton);
+          });
+        } else {
+          const row = dataTableBody.insertRow();
+          const cell = row.insertCell();
+          cell.colSpan = 14;
+          cell.className = 'text-center py-8 text-gray-500';
+          cell.innerHTML = '<i class="fas fa-inbox text-3xl mb-2"></i><br>Nenhum dado encontrado.';
+        }
+      }
+
+      function updateSortIndicators() {
+        document.querySelectorAll('.tabela-dados th.sortable').forEach(th => {
+          th.classList.remove('sorted-asc', 'sorted-desc');
+          if (th.dataset.field === currentSortField) {
+            th.classList.add(currentSortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+          }
+        });
+      }
+
+      // Event listeners para ordenação
+      document.querySelectorAll('.tabela-dados th.sortable').forEach(th => {
+        th.addEventListener('click', function() {
+          sortTableData(this.dataset.field);
+        });
+      });
+
+      function showSpecificError(error) {
+        console.error('Erro:', error);
+        showMessage('readMessage', 'Erro: ' + error.toString(), 'error');
+      }
+
+      // Inicialização
+      document.addEventListener('DOMContentLoaded', function() {
+        displayUserEmail();
+        loadAssuntoSubAssuntoMap();
+        lerDadosExistentes();
+      });
+    </script>
+  </body>
+</html>
