@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Lançamento de Processos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1e40af',
+                        secondary: '#64748b'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Cabeçalho -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Controle de Lançamento de Processos</h1>
+            <p class="text-gray-600">Sistema de registro e acompanhamento de processos</p>
+        </div>
+
+        <!-- Mensagens de Status -->
+        <div id="statusMessage" class="hidden mb-6 p-4 rounded-lg"></div>
+
+        <!-- Formulário Principal -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Novo Registro</h2>
+            
+            <form id="processForm" class="space-y-6">
+                <!-- Linha 1: Sistema, Núm.PAE/SAJ, Interessado -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="sistema" class="block text-sm font-medium text-gray-700 mb-2">Sistema *</label>
+                        <select id="sistema" name="sistema" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="">Selecione um sistema</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="numPAESAJ" class="block text-sm font-medium text-gray-700 mb-2">Núm.PAE/SAJ *</label>
+                        <input type="text" id="numPAESAJ" name="numPAESAJ" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label for="interessado" class="block text-sm font-medium text-gray-700 mb-2">Interessado *</label>
+                        <input type="text" id="interessado" name="interessado" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    </div>
+                </div>
+
+                <!-- Linha 2: Entrada, Situação, Assimetria -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="entrada" class="block text-sm font-medium text-gray-700 mb-2">Entrada *</label>
+                        <input type="date" id="entrada" name="entrada" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label for="situacao" class="block text-sm font-medium text-gray-700 mb-2">Situação *</label>
+                        <select id="situacao" name="situacao" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="">Selecione uma situação</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="assimetria" class="block text-sm font-medium text-gray-700 mb-2">Assimetria</label>
+                        <select id="assimetria" name="assimetria" disabled class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-100">
+                            <option value="">Selecione uma assimetria</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Linha 3: Observação -->
+                <div>
+                    <label for="observacao" class="block text-sm font-medium text-gray-700 mb-2">Observação</label>
+                    <textarea id="observacao" name="observacao" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+                </div>
+
+                <!-- Linha 4: UG Origem, Assunto, Sub Assunto -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="ugOrigem" class="block text-sm font-medium text-gray-700 mb-2">UG Origem *</label>
+                        <select id="ugOrigem" name="ugOrigem" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="">Selecione uma UG</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="assunto" class="block text-sm font-medium text-gray-700 mb-2">Assunto *</label>
+                        <select id="assunto" name="assunto" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="">Selecione um assunto</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="subAssunto" class="block text-sm font-medium text-gray-700 mb-2">Sub Assunto</label>
+                        <select id="subAssunto" name="subAssunto" disabled class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-100">
+                            <option value="">Selecione um sub assunto</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Linha 5: ACI Responsável, Destino, Saída -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="aciResponsavel" class="block text-sm font-medium text-gray-700 mb-2">ACI Responsável</label>
+                        <input type="text" id="aciResponsavel" name="aciResponsavel" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600">
+                    </div>
+                    
+                    <div>
+                        <label for="destino" class="block text-sm font-medium text-gray-700 mb-2">Destino *</label>
+                        <select id="destino" name="destino" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="">Selecione um destino</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="saida" class="block text-sm font-medium text-gray-700 mb-2">Saída</label>
+                        <input type="date" id="saida" name="saida" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    </div>
+                </div>
+
+                <!-- Botão de Envio -->
+                <div class="flex justify-center pt-6">
+                    <button type="submit" id="submitBtn" class="bg-primary hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50">
+                        <span id="submitText">Salvar Registro</span>
+                        <span id="loadingText" class="hidden">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Salvando...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabela de Registros Recentes -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Registros Recentes</h2>
+            <!-- Controles de período para dashboard -->
+            <div class="flex items-center gap-3 mb-4">
+                <label class="text-sm">Período:</label>
+                <input type="date" id="dashboardStart" class="px-2 py-1 border rounded" />
+                <span>até</span>
+                <input type="date" id="dashboardEnd" class="px-2 py-1 border rounded" />
+                <button id="btnFilterDashboard" class="ml-3 bg-primary text-white px-3 py-1 rounded">Filtrar</button>
+            </div>
+
+            <!-- Gráfico: Quantidade por UG Origem -->
+            <div class="mb-6">
+                <canvas id="ugChart" width="400" height="150"></canvas>
+            </div>
+            <div class="overflow-x-auto">
+                <table id="recentRecordsTable" class="min-w-full table-auto">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sistema</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Núm.PAE/SAJ</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interessado</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entrada</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Situação</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assunto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentRecordsBody" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-500">Carregando registros...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Variáveis globais
+        let dropdownData = {};
+        let isSubmitting = false;
+
+
+        // Inicialização da página
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            setupEventListeners();
+            setupDashboardControls();
+        });
+
+        // Inicializar dados da página
+        function initializePage() {
+            console.log('Iniciando carregamento da página...');
+            
+            // Carregar dados dos dropdowns
+            console.log('Carregando dados dos dropdowns...');
+            google.script.run
+                .withSuccessHandler(populateInitialDropdowns)
+                .withFailureHandler((error) => handleError('Erro ao carregar dropdowns: ' + error))
+                .getDropdownData();
+
+            // Carregar nome do usuário
+            console.log('Carregando usuário logado...');
+            google.script.run
+                .withSuccessHandler(fillUserName)
+                .withFailureHandler((error) => handleError('Erro ao carregar usuário: ' + error))
+                .getUsuarioLogado();
+
+            // Carregar registros recentes
+            console.log('Carregando registros recentes...');
+            google.script.run
+                .withSuccessHandler(displayRecentRecords)
+                .withFailureHandler((error) => handleError('Erro ao carregar registros: ' + error))
+                .getRecentRecords();
+        }
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Event listener para mudança de situação
+            document.getElementById('situacao').addEventListener('change', handleSituacaoChange);
+
+            // Event listener para mudança de assunto
+            document.getElementById('assunto').addEventListener('change', handleAssuntoChange);
+
+            // Event listener para envio do formulário
+            document.getElementById('processForm').addEventListener('submit', handleFormSubmit);
+        }
+
+        // Setup para controles do dashboard
+        let ugChartInstance = null;
+        function setupDashboardControls() {
+            document.getElementById('btnFilterDashboard').addEventListener('click', function(){
+                const start = document.getElementById('dashboardStart').value;
+                const end = document.getElementById('dashboardEnd').value;
+                if (!start || !end) { showStatusMessage('Selecione início e fim do período', 'error'); return; }
+                fetchUGCountsAndRender(start, end);
+            });
+
+            // Inicializar com últimos 30 dias por padrão
+            const today = new Date();
+            const prior = new Date(); prior.setDate(today.getDate() - 29);
+            document.getElementById('dashboardEnd').value = today.toISOString().slice(0,10);
+            document.getElementById('dashboardStart').value = prior.toISOString().slice(0,10);
+            fetchUGCountsAndRender(document.getElementById('dashboardStart').value, document.getElementById('dashboardEnd').value);
+        }
+
+        function fetchUGCountsAndRender(start, end) {
+            google.script.run
+                .withSuccessHandler(renderUGChart)
+                .withFailureHandler(function(err){ showStatusMessage('Erro ao carregar dados do dashboard: '+err, 'error'); })
+                .getCountsByUGOrigem(start, end);
+        }
+
+        function renderUGChart(data) {
+            // data: [{ugOrigem, count}, ...]
+            const labels = data.map(d => d.ugOrigem || '(sem UG)');
+            const values = data.map(d => d.count || 0);
+
+            const ctx = document.getElementById('ugChart').getContext('2d');
+            if (ugChartInstance) {
+                ugChartInstance.data.labels = labels;
+                ugChartInstance.data.datasets[0].data = values;
+                ugChartInstance.update();
+                return;
+            }
+
+            ugChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Quantidade por UG Origem',
+                        data: values,
+                        backgroundColor: 'rgba(30,64,175,0.7)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, precision: 0 }
+                    }
+                }
+            });
+        }
+
+        // Popular dropdowns iniciais
+        function populateInitialDropdowns(data) {
+            console.log('Dados recebidos para dropdowns:', data);
+            dropdownData = data;
+
+            // Popular dropdown de sistemas
+            populateSelect('sistema', data.sistemas);
+
+            // Popular dropdown de UG Origem
+            populateSelect('ugOrigem', data.ugOrigem);
+
+            // Popular dropdown de assuntos
+            populateSelect('assunto', data.assuntos);
+
+            // Popular dropdown de destino (usando setores)
+            populateSelect('destino', data.setores);
+
+            // Popular dropdown de situações (usando dados da Config Assimetria)
+            populateSelect('situacao', data.situacoes);
+            
+            console.log('Dropdowns populados com sucesso');
+        }
+
+        // Função auxiliar para popular selects
+        function populateSelect(selectId, options) {
+            const select = document.getElementById(selectId);
+            const firstOption = select.querySelector('option[value=""]');
+            
+            // Limpar opções existentes, mantendo a primeira
+            select.innerHTML = '';
+            if (firstOption) {
+                select.appendChild(firstOption);
+            }
+
+            // Adicionar novas opções
+            options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                select.appendChild(optionElement);
+            });
+        }
+
+        // Preencher nome do usuário
+        function fillUserName(userName) {
+            document.getElementById('aciResponsavel').value = userName;
+        }
+
+        // Lidar com mudança de situação
+        function handleSituacaoChange(event) {
+            const situacao = event.target.value;
+            const assimetriaSelect = document.getElementById('assimetria');
+
+            if (situacao) {
+                // Buscar assimetrias do backend baseadas na situação
+                google.script.run
+                    .withSuccessHandler(updateAssimetrias)
+                    .withFailureHandler(handleError)
+                    .getAssimetrias(situacao);
+            } else {
+                // Desabilitar e limpar assimetria
+                assimetriaSelect.disabled = true;
+                assimetriaSelect.classList.add('bg-gray-100');
+                assimetriaSelect.innerHTML = '<option value="">Selecione uma assimetria</option>';
+                assimetriaSelect.value = '';
+            }
+        }
+
+        // Lidar com mudança de assunto
+        function handleAssuntoChange(event) {
+            const assunto = event.target.value;
+            const subAssuntoSelect = document.getElementById('subAssunto');
+
+            if (assunto) {
+                // Buscar sub-assuntos
+                google.script.run
+                    .withSuccessHandler(updateSubAssuntos)
+                    .withFailureHandler(handleError)
+                    .getSubAssuntos(assunto);
+            } else {
+                // Desabilitar e limpar sub-assunto
+                subAssuntoSelect.disabled = true;
+                subAssuntoSelect.classList.add('bg-gray-100');
+                subAssuntoSelect.innerHTML = '<option value="">Selecione um sub assunto</option>';
+                subAssuntoSelect.value = '';
+            }
+        }
+
+        // Atualizar assimetrias
+        function updateAssimetrias(assimetrias) {
+            const assimetriaSelect = document.getElementById('assimetria');
+            
+            // Limpar opções existentes
+            assimetriaSelect.innerHTML = '<option value="">Selecione uma assimetria</option>';
+            
+            if (assimetrias.length > 0) {
+                // Habilitar e popular assimetrias
+                assimetriaSelect.disabled = false;
+                assimetriaSelect.classList.remove('bg-gray-100');
+                
+                assimetrias.forEach(assimetria => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = assimetria;
+                    optionElement.textContent = assimetria;
+                    assimetriaSelect.appendChild(optionElement);
+                });
+            } else {
+                // Manter desabilitado se não há assimetrias
+                assimetriaSelect.disabled = true;
+                assimetriaSelect.classList.add('bg-gray-100');
+            }
+        }
+
+        // Atualizar sub-assuntos
+        function updateSubAssuntos(subAssuntos) {
+            const subAssuntoSelect = document.getElementById('subAssunto');
+            
+            // Limpar opções existentes
+            subAssuntoSelect.innerHTML = '<option value="">Selecione um sub assunto</option>';
+            
+            if (subAssuntos.length > 0) {
+                // Habilitar e popular sub-assuntos
+                subAssuntoSelect.disabled = false;
+                subAssuntoSelect.classList.remove('bg-gray-100');
+                
+                subAssuntos.forEach(subAssunto => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = subAssunto;
+                    optionElement.textContent = subAssunto;
+                    subAssuntoSelect.appendChild(optionElement);
+                });
+            } else {
+                // Manter desabilitado se não há sub-assuntos
+                subAssuntoSelect.disabled = true;
+                subAssuntoSelect.classList.add('bg-gray-100');
+            }
+        }
+
+        // Lidar com envio do formulário
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            if (isSubmitting) return;
+            
+            // Mostrar loading
+            showLoading(true);
+            isSubmitting = true;
+
+            // Coletar dados do formulário
+            const formData = {
+                sistema: document.getElementById('sistema').value,
+                numPAESAJ: document.getElementById('numPAESAJ').value,
+                interessado: document.getElementById('interessado').value,
+                entrada: document.getElementById('entrada').value,
+                situacao: document.getElementById('situacao').value,
+                assimetria: document.getElementById('assimetria').value,
+                observacao: document.getElementById('observacao').value,
+                ugOrigem: document.getElementById('ugOrigem').value,
+                assunto: document.getElementById('assunto').value,
+                subAssunto: document.getElementById('subAssunto').value,
+                aciResponsavel: document.getElementById('aciResponsavel').value,
+                destino: document.getElementById('destino').value,
+                saida: document.getElementById('saida').value
+            };
+
+            // Enviar dados para o backend
+            google.script.run
+                .withSuccessHandler(onSaveSuccess)
+                .withFailureHandler(onSaveFailure)
+                .addNewRecord(formData);
+        }
+
+        // Sucesso ao salvar
+        function onSaveSuccess(result) {
+            showLoading(false);
+            isSubmitting = false;
+
+            if (result.status === 'success') {
+                showStatusMessage(result.message, 'success');
+                clearForm();
+                
+                // Atualizar registros recentes
+                google.script.run
+                    .withSuccessHandler(displayRecentRecords)
+                    .withFailureHandler(handleError)
+                    .getRecentRecords();
+            } else {
+                showStatusMessage(result.message, 'error');
+            }
+        }
+
+        // Falha ao salvar
+        function onSaveFailure(error) {
+            showLoading(false);
+            isSubmitting = false;
+            showStatusMessage('Erro ao salvar registro: ' + error.toString(), 'error');
+        }
+
+        // Mostrar/ocultar loading
+        function showLoading(show) {
+            const submitText = document.getElementById('submitText');
+            const loadingText = document.getElementById('loadingText');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (show) {
+                submitText.classList.add('hidden');
+                loadingText.classList.remove('hidden');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                submitText.classList.remove('hidden');
+                loadingText.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // Mostrar mensagem de status
+        function showStatusMessage(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            
+            statusMessage.className = `mb-6 p-4 rounded-lg ${type === 'success' ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700'}`;
+            statusMessage.textContent = message;
+            statusMessage.classList.remove('hidden');
+
+            // Ocultar após 5 segundos
+            setTimeout(() => {
+                statusMessage.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Limpar formulário
+        function clearForm() {
+            const form = document.getElementById('processForm');
+            form.reset();
+
+            // Reabilitar campos que podem ter sido desabilitados
+            const assimetriaSelect = document.getElementById('assimetria');
+            const subAssuntoSelect = document.getElementById('subAssunto');
+
+            assimetriaSelect.disabled = true;
+            assimetriaSelect.classList.add('bg-gray-100');
+            assimetriaSelect.innerHTML = '<option value="">Selecione uma assimetria</option>';
+
+            subAssuntoSelect.disabled = true;
+            subAssuntoSelect.classList.add('bg-gray-100');
+            subAssuntoSelect.innerHTML = '<option value="">Selecione um sub assunto</option>';
+
+            // Manter o nome do usuário
+            google.script.run
+                .withSuccessHandler(fillUserName)
+                .withFailureHandler(handleError)
+                .getUsuarioLogado();
+        }
+
+        // Exibir registros recentes
+        function displayRecentRecords(records) {
+            console.log('Registros recebidos:', records);
+            const tbody = document.getElementById('recentRecordsBody');
+            
+            if (!tbody) {
+                console.error('Elemento recentRecordsBody não encontrado');
+                return;
+            }
+            
+            if (!records || records.length === 0) {
+                console.log('Nenhum registro para exibir');
+                tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Nenhum registro encontrado</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            console.log('Processando', records.length, 'registros');
+            
+            records.forEach((record, index) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                // A data já vem formatada do backend
+                const entradaFormatted = record.entrada || '';
+                
+                row.innerHTML = `
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${record.sistema || ''}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${record.numPAESAJ || ''}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${record.interessado || ''}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${entradaFormatted}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getSituacaoColor(record.situacao)}">
+                            ${record.situacao || ''}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${record.assunto || ''}</td>
+                `;
+                
+                tbody.appendChild(row);
+                
+                if (index === 0) {
+                    console.log('Primeiro registro processado no frontend:', record);
+                }
+            });
+            
+            console.log('Tabela de registros atualizada com sucesso');
+        }
+
+        // Obter cor para situação
+        function getSituacaoColor(situacao) {
+            switch (situacao) {
+                case 'Conforme':
+                    return 'bg-green-100 text-green-800';
+                case 'Desconforme':
+                    return 'bg-red-100 text-red-800';
+                case 'Parcialmente Conforme':
+                    return 'bg-yellow-100 text-yellow-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        // Lidar com erros
+        function handleError(error) {
+            console.error('Erro:', error);
+            showStatusMessage('Erro ao carregar dados: ' + error.toString(), 'error');
+        }
+    </script>
+</body>
+</html>
