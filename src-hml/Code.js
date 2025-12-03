@@ -128,31 +128,91 @@ function getAssimetrias(situacaoSelecionada) {
 }
 
 /**
- * Obtém o nome do usuário logado
- * @return {string} Nome do usuário ou email se não encontrado
+ * Obtém informações completas do usuário logado (nome e perfil)
+ * @return {Object} Objeto com nome, email e perfil do usuário
  */
 function getUsuarioLogado() {
   try {
-    const email = Session.getActiveUser().getEmail();
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const configUsuarios = ss.getSheetByName('Config Usuarios');
+    var email = Session.getActiveUser().getEmail();
+    Logger.log('Email do usuário ativo: ' + email);
     
-    // Buscar dados das colunas A e B
-    const data = configUsuarios.getRange('A2:B').getValues();
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var configUsuarios = ss.getSheetByName('Config Usuarios');
     
-    // Procurar o email na coluna A e retornar o nome da coluna B
-    for (let i = 0; i < data.length; i++) {
-      if (data[i][0] === email) {
-        return data[i][1] || email;
+    if (!configUsuarios) {
+      Logger.log('Aba "Config Usuarios" não encontrada. Retornando dados básicos do usuário.');
+      return {
+        nome: email,
+        email: email,
+        perfil: 'Usuário'
+      };
+    }
+    
+    // Buscar dados das colunas A, B e C
+    var data = configUsuarios.getRange('A2:C').getValues();
+    Logger.log('Dados da aba Config Usuarios carregados: ' + data.length + ' linhas');
+    
+    // Procurar o email na coluna A e retornar nome (coluna B) e perfil (coluna C)
+    for (var i = 0; i < data.length; i++) {
+      var emailConfig = data[i][0] ? data[i][0].toString().trim().toLowerCase() : '';
+      var nomeConfig = data[i][1] ? data[i][1].toString().trim() : '';
+      var perfilConfig = data[i][2] ? data[i][2].toString().trim() : 'Usuário';
+      
+      if (emailConfig === email.toLowerCase()) {
+        Logger.log('Usuário encontrado: ' + email + ' -> ' + nomeConfig + ' (' + perfilConfig + ')');
+        return {
+          nome: nomeConfig || email,
+          email: email,
+          perfil: perfilConfig
+        };
       }
     }
     
-    // Se não encontrar, retornar o próprio email
-    return email;
+    // Se não encontrar, retornar dados básicos
+    Logger.log('Usuário não encontrado na configuração. Retornando dados básicos: ' + email);
+    return {
+      nome: email,
+      email: email,
+      perfil: 'Usuário'
+    };
     
   } catch (error) {
-    console.error('Erro ao obter usuário logado:', error);
-    return '';
+    Logger.log('Erro ao obter usuário logado: ' + error.toString());
+    return {
+      nome: 'Usuário não identificado',
+      email: '',
+      perfil: 'Usuário'
+    };
+  }
+}
+
+/**
+ * Verifica se o usuário logado é administrador
+ * @return {boolean} True se for administrador, false caso contrário
+ */
+function isUserAdmin() {
+  try {
+    var userInfo = getUsuarioLogado();
+    var isAdmin = userInfo.perfil && userInfo.perfil.toLowerCase() === 'administrador';
+    Logger.log('Verificação de admin para ' + userInfo.email + ': ' + isAdmin);
+    return isAdmin;
+  } catch (error) {
+    Logger.log('Erro ao verificar se usuário é admin: ' + error.toString());
+    return false;
+  }
+}
+
+/**
+ * Obtém apenas o nome do usuário logado (para compatibilidade)
+ * @return {string} Nome do usuário
+ */
+function getNomeUsuarioLogado() {
+  try {
+    var userInfo = getUsuarioLogado();
+    return userInfo.nome;
+  } catch (error) {
+    Logger.log('Erro ao obter nome do usuário: ' + error.toString());
+    return 'Usuário não identificado';
   }
 }
 
@@ -373,6 +433,344 @@ function getRecentRecords() {
 }
 
 /**
+ * Busca TODOS os registros da aba "Dados" (para a página de registros completa)
+ * @return {Array} Array de objetos representando todos os registros
+ */
+function getAllRecords() {
+  try {
+    var planilha = SpreadsheetApp.getActiveSpreadsheet();
+    Logger.log('Tentando obter a aba com o nome: Dados para leitura de TODOS os registros.');
+    var aba = planilha.getSheetByName('Dados');
+
+    if (aba == null) {
+      Logger.log('A aba "Dados" não foi encontrada ao ler todos os registros. Retornando array vazio.');
+      return [];
+    }
+    Logger.log('Aba "Dados" encontrada para leitura de todos os registros.');
+
+    var ultimaLinha = aba.getLastRow();
+    var ultimaColuna = aba.getLastColumn();
+    Logger.log('Última linha da aba "Dados": ' + ultimaLinha + ', Última coluna: ' + ultimaColuna);
+
+    // Ajustar o número de colunas esperadas
+    var numColunasEsperadas = 13;
+    if (ultimaColuna < numColunasEsperadas) {
+        Logger.log('Atenção: A planilha tem menos colunas do que o esperado. Lendo até a última coluna disponível.');
+        ultimaColuna = numColunasEsperadas;
+    }
+
+    if (ultimaLinha < 2 || ultimaColuna === 0) {
+      Logger.log('Planilha "Dados" está vazia, contém apenas cabeçalho ou não há colunas. Retornando array vazio.');
+      return [];
+    }
+
+    // Obtém TODOS os dados da planilha, exceto a primeira linha (cabeçalho)
+    var dadosBrutos = aba.getRange(2, 1, ultimaLinha - 1, ultimaColuna).getValues();
+    Logger.log('Dados brutos obtidos: ' + dadosBrutos.length + ' linhas (TODOS os registros)');
+
+    // Processa os dados para garantir que as datas sejam formatadas corretamente
+    var dadosProcessados = dadosBrutos.map(function(row, index) {
+      // Log a cada 100 registros para acompanhar o progresso
+      if (index % 100 === 0) {
+        Logger.log('Processando registro ' + (index + 1) + ' de ' + dadosBrutos.length);
+      }
+      
+      var registro = {
+        sistema: row[0] ? row[0].toString() : '',
+        numPAESAJ: row[1] ? row[1].toString() : '',
+        interessado: row[2] ? row[2].toString() : '',
+        entrada: row[3] instanceof Date ? formatDate(row[3]) : (row[3] ? row[3].toString() : ''),
+        situacao: row[4] ? row[4].toString() : '',
+        assimetria: row[5] ? row[5].toString() : '',
+        observacao: row[6] ? row[6].toString() : '',
+        ugOrigem: row[7] ? row[7].toString() : '',
+        assunto: row[8] ? row[8].toString() : '',
+        subAssunto: row[9] ? row[9].toString() : '',
+        aciResponsavel: row[10] ? row[10].toString() : '',
+        destino: row[11] ? row[11].toString() : '',
+        saida: row[12] instanceof Date ? formatDate(row[12]) : (row[12] ? row[12].toString() : '')
+      };
+      
+      return registro;
+    });
+
+    // Retornar em ordem reversa (mais recentes primeiro)
+    var registrosReversed = dadosProcessados.reverse();
+    Logger.log('Total de TODOS os registros retornados: ' + registrosReversed.length);
+
+    return registrosReversed;
+
+  } catch (error) {
+    Logger.log('Erro ao buscar TODOS os registros: ' + error.toString());
+    return [];
+  }
+}
+
+/**
+ * Exclui um registro da aba "Dados"
+ * @param {number} rowIndex - Índice da linha na planilha (base 1) a ser excluída
+ * @return {Object} Objeto com status da operação
+ */
+function deleteRecord(rowIndex) {
+  try {
+    var planilha = SpreadsheetApp.getActiveSpreadsheet();
+    var aba = planilha.getSheetByName('Dados');
+    
+    if (!aba) {
+      Logger.log('Aba "Dados" não encontrada para exclusão.');
+      return {
+        status: 'error',
+        message: 'Aba "Dados" não encontrada.'
+      };
+    }
+    
+    var ultimaLinha = aba.getLastRow();
+    
+    // Verificar se o índice da linha é válido
+    if (rowIndex < 2 || rowIndex > ultimaLinha) {
+      Logger.log('Índice de linha inválido para exclusão: ' + rowIndex);
+      return {
+        status: 'error',
+        message: 'Índice de linha inválido. Linha: ' + rowIndex
+      };
+    }
+    
+    // Excluir a linha
+    aba.deleteRow(rowIndex);
+    
+    Logger.log('Registro excluído com sucesso da linha: ' + rowIndex);
+    return {
+      status: 'success',
+      message: 'Registro excluído com sucesso!'
+    };
+    
+  } catch (error) {
+    Logger.log('Erro ao excluir registro: ' + error.toString());
+    return {
+      status: 'error',
+      message: 'Erro ao excluir registro: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * Obtém todos os usuários da aba "Config Usuarios"
+ * @return {Array} Array com todos os usuários
+ */
+function getAllUsers() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var configUsuarios = ss.getSheetByName('Config Usuarios');
+    
+    if (!configUsuarios) {
+      Logger.log('Aba "Config Usuarios" não encontrada.');
+      return [];
+    }
+    
+    var data = configUsuarios.getRange('A2:C').getValues();
+    var users = [];
+    
+    for (var i = 0; i < data.length; i++) {
+      if (data[i][0]) { // Se há email na linha
+        users.push({
+          email: data[i][0].toString().trim(),
+          nome: data[i][1] ? data[i][1].toString().trim() : '',
+          perfil: data[i][2] ? data[i][2].toString().trim() : 'Usuário'
+        });
+      }
+    }
+    
+    Logger.log('Total de usuários encontrados: ' + users.length);
+    return users;
+    
+  } catch (error) {
+    Logger.log('Erro ao buscar usuários: ' + error.toString());
+    return [];
+  }
+}
+
+/**
+ * Obtém dados de um usuário específico por linha
+ * @param {number} rowIndex - Índice da linha (base 1)
+ * @return {Object} Dados do usuário
+ */
+function getUserByRow(rowIndex) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var configUsuarios = ss.getSheetByName('Config Usuarios');
+    
+    if (!configUsuarios) {
+      throw new Error('Aba "Config Usuarios" não encontrada.');
+    }
+    
+    var data = configUsuarios.getRange(rowIndex, 1, 1, 3).getValues()[0];
+    
+    return {
+      email: data[0] ? data[0].toString().trim() : '',
+      nome: data[1] ? data[1].toString().trim() : '',
+      perfil: data[2] ? data[2].toString().trim() : 'Usuário'
+    };
+    
+  } catch (error) {
+    Logger.log('Erro ao buscar usuário por linha: ' + error.toString());
+    throw error;
+  }
+}
+
+/**
+ * Adiciona um novo usuário
+ * @param {Object} userData - Dados do usuário
+ * @return {Object} Resultado da operação
+ */
+function addUser(userData) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var configUsuarios = ss.getSheetByName('Config Usuarios');
+    
+    if (!configUsuarios) {
+      return {
+        status: 'error',
+        message: 'Aba "Config Usuarios" não encontrada.'
+      };
+    }
+    
+    // Verificar se o email já existe
+    var existingUsers = getAllUsers();
+    for (var i = 0; i < existingUsers.length; i++) {
+      if (existingUsers[i].email.toLowerCase() === userData.email.toLowerCase()) {
+        return {
+          status: 'error',
+          message: 'Este email já está cadastrado no sistema.'
+        };
+      }
+    }
+    
+    // Adicionar nova linha
+    var nextRow = configUsuarios.getLastRow() + 1;
+    configUsuarios.getRange(nextRow, 1, 1, 3).setValues([[
+      userData.email,
+      userData.nome,
+      userData.perfil
+    ]]);
+    
+    Logger.log('Usuário adicionado: ' + userData.email);
+    return {
+      status: 'success',
+      message: 'Usuário adicionado com sucesso!'
+    };
+    
+  } catch (error) {
+    Logger.log('Erro ao adicionar usuário: ' + error.toString());
+    return {
+      status: 'error',
+      message: 'Erro ao adicionar usuário: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * Atualiza dados de um usuário
+ * @param {number} rowIndex - Índice da linha (base 1)
+ * @param {Object} userData - Novos dados do usuário
+ * @return {Object} Resultado da operação
+ */
+function updateUser(rowIndex, userData) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var configUsuarios = ss.getSheetByName('Config Usuarios');
+    
+    if (!configUsuarios) {
+      return {
+        status: 'error',
+        message: 'Aba "Config Usuarios" não encontrada.'
+      };
+    }
+    
+    // Verificar se o email já existe em outra linha
+    var existingUsers = getAllUsers();
+    for (var i = 0; i < existingUsers.length; i++) {
+      var currentRowIndex = i + 2; // +2 porque começamos da linha 2
+      if (currentRowIndex !== rowIndex && 
+          existingUsers[i].email.toLowerCase() === userData.email.toLowerCase()) {
+        return {
+          status: 'error',
+          message: 'Este email já está cadastrado em outro usuário.'
+        };
+      }
+    }
+    
+    // Atualizar dados
+    configUsuarios.getRange(rowIndex, 1, 1, 3).setValues([[
+      userData.email,
+      userData.nome,
+      userData.perfil
+    ]]);
+    
+    Logger.log('Usuário atualizado: ' + userData.email);
+    return {
+      status: 'success',
+      message: 'Usuário atualizado com sucesso!'
+    };
+    
+  } catch (error) {
+    Logger.log('Erro ao atualizar usuário: ' + error.toString());
+    return {
+      status: 'error',
+      message: 'Erro ao atualizar usuário: ' + error.toString()
+    };
+  }
+}
+
+/**
+ * Exclui um usuário
+ * @param {number} rowIndex - Índice da linha (base 1)
+ * @return {Object} Resultado da operação
+ */
+function deleteUser(rowIndex) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var configUsuarios = ss.getSheetByName('Config Usuarios');
+    
+    if (!configUsuarios) {
+      return {
+        status: 'error',
+        message: 'Aba "Config Usuarios" não encontrada.'
+      };
+    }
+    
+    // Verificar se não é o último administrador
+    var userData = getUserByRow(rowIndex);
+    if (userData.perfil === 'Administrador') {
+      var allUsers = getAllUsers();
+      var adminCount = allUsers.filter(user => user.perfil === 'Administrador').length;
+      
+      if (adminCount <= 1) {
+        return {
+          status: 'error',
+          message: 'Não é possível excluir o último administrador do sistema.'
+        };
+      }
+    }
+    
+    // Excluir linha
+    configUsuarios.deleteRow(rowIndex);
+    
+    Logger.log('Usuário excluído da linha: ' + rowIndex);
+    return {
+      status: 'success',
+      message: 'Usuário excluído com sucesso!'
+    };
+    
+  } catch (error) {
+    Logger.log('Erro ao excluir usuário: ' + error.toString());
+    return {
+      status: 'error',
+      message: 'Erro ao excluir usuário: ' + error.toString()
+    };
+  }
+}
+
+/**
  * Função auxiliar para formatar datas
  * @param {Date} date - Data a ser formatada
  * @return {string} Data formatada como dd/mm/aaaa
@@ -381,64 +779,9 @@ function formatDate(date) {
   if (!(date instanceof Date) || isNaN(date.getTime())) {
     return '';
   }
-  // Adiciona 1 dia conforme solicitado pelo usuário (corrige deslocamento observado)
-  var adjusted = new Date(date.getTime());
-  adjusted.setDate(adjusted.getDate() + 1);
-
-  var dia = adjusted.getDate().toString().padStart(2, '0');
-  var mes = (adjusted.getMonth() + 1).toString().padStart(2, '0');
-  var ano = adjusted.getFullYear();
+  
+  var dia = date.getDate().toString().padStart(2, '0');
+  var mes = (date.getMonth() + 1).toString().padStart(2, '0');
+  var ano = date.getFullYear();
   return dia + '/' + mes + '/' + ano;
-}
-
-/**
- * Retorna contagem de registros por UG Origem entre duas datas (inclusive).
- * startDate e endDate podem ser strings no formato 'yyyy-mm-dd' ou objetos Date.
- * Retorna um array de objetos: [{ ugOrigem: 'UG X', count: 10 }, ...]
- */
-function getCountsByUGOrigem(startDate, endDate) {
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var aba = ss.getSheetByName('Dados');
-    if (!aba) return [];
-
-    // Converter parâmetros para Date
-    var sDate = (startDate instanceof Date) ? startDate : new Date(startDate);
-    var eDate = (endDate instanceof Date) ? endDate : new Date(endDate);
-    // Normalizar horas para incluir o dia inteiro
-    sDate.setHours(0,0,0,0);
-    eDate.setHours(23,59,59,999);
-
-    var ultimaLinha = aba.getLastRow();
-    var ultimaColuna = aba.getLastColumn();
-    if (ultimaLinha < 2) return [];
-
-    var dados = aba.getRange(2,1,ultimaLinha-1, Math.max(13, ultimaColuna)).getValues();
-
-    var counts = {};
-    dados.forEach(function(row){
-      // Coluna UG Origem é a 8ª na ordem usada (índice 7)
-      var ug = row[7] ? row[7].toString() : '';
-      var entradaRaw = row[3];
-
-      var entradaDate = null;
-      if (entradaRaw instanceof Date) entradaDate = entradaRaw;
-      else if (entradaRaw) entradaDate = new Date(entradaRaw);
-
-      if (!entradaDate || isNaN(entradaDate.getTime())) return;
-
-      // comparar no intervalo
-      if (entradaDate >= sDate && entradaDate <= eDate) {
-        counts[ug] = (counts[ug] || 0) + 1;
-      }
-    });
-
-    // Transformar em array ordenado por count desc
-    var result = Object.keys(counts).map(function(k){ return { ugOrigem: k, count: counts[k] }; });
-    result.sort(function(a,b){ return b.count - a.count; });
-    return result;
-  } catch (error) {
-    Logger.log('Erro em getCountsByUGOrigem: ' + error.toString());
-    return [];
-  }
 }
