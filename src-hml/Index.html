@@ -92,7 +92,7 @@
                     </a>
                 </li>
                 <li>
-                    <a id="navAddRecord" href="#" class="flex items-center space-x-3 text-white hover:bg-primary-dark px-4 py-3 rounded-lg transition-colors">
+                    <a id="navAddRecord" href="#" class="hidden flex items-center space-x-3 text-white hover:bg-primary-dark px-4 py-3 rounded-lg transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
@@ -113,6 +113,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                         </svg>
                         <span>Gerenciar Usuários</span>
+                    </a>
+                </li>
+                <li id="navSettingsPanel" class="hidden">
+                    <a id="navSettings" href="#" class="flex items-center space-x-3 text-white hover:bg-primary-dark px-4 py-3 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0a1.724 1.724 0 002.573.98c.83-.48 1.86.45 1.38 1.28a1.724 1.724 0 00.98 2.573c.921.3.921 1.603 0 1.902a1.724 1.724 0 00-.98 2.573c.48.83-.45 1.86-1.28 1.38a1.724 1.724 0 00-2.573.98c-.3.921-1.603.921-1.902 0a1.724 1.724 0 00-2.573-.98c-.83.48-1.86-.45-1.38-1.28a1.724 1.724 0 00-.98-2.573c-.921-.3-.921-1.603 0-1.902a1.724 1.724 0 00.98-2.573c-.48-.83.45-1.86 1.28-1.38.83.48 1.86-.45 2.573-.98z"></path>
+                        </svg>
+                        <span>Configurações</span>
                     </a>
                 </li>
             </ul>
@@ -148,74 +156,24 @@
         <main class="p-6">
             <!-- Dashboard Page -->
             <div id="dashboardPage" class="page-content">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <!-- Cards de Estatísticas -->
-                    <div class="bg-white rounded-lg shadow-lg p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-blue-100 text-primary">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Total de Registros</p>
-                                <p id="totalRecords" class="text-2xl font-semibold text-gray-900">
-                                    <i class="fas fa-spinner fa-spin text-primary"></i>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 bg-green-100 rounded-full">
-                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Status Analisado</p>
-                                <p id="statusAnalisado" class="text-2xl font-semibold text-gray-900">
-                                    <i class="fas fa-spinner fa-spin text-green-600"></i>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <div class="flex items-center">
-                            <div class="p-3 bg-yellow-100 rounded-full">
-                                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-600">Últimos 30 dias</p>
-                                <p id="recentRecords" class="text-2xl font-semibold text-gray-900">
-                                    <i class="fas fa-spinner fa-spin text-yellow-600"></i>
-                                </p>
-                            </div>
-                        </div>
+                <!-- Relatório - Looker Studio -->
+                <div id="lookerStudioContainer" class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Relatório - Looker Studio</h2>
+                    <div class="w-full">
+                        <iframe id="lookerStudioIframe"
+                                src="https://lookerstudio.google.com/embed/reporting/9a980e16-1e9c-43fe-ae56-4502b9854fa1/page/arAKF"
+                                style="width:100%; height:70vh; border:0;"
+                                frameborder="0"
+                                allowfullscreen
+                                sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                                loading="lazy">
+                        </iframe>
                     </div>
                 </div>
-
-                <!-- Resumo Adicional -->
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Resumo do Sistema</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="text-center">
-                            <div class="text-3xl font-bold text-primary mb-2">📊</div>
-                            <h3 class="text-lg font-semibold text-gray-700">Controle Total</h3>
-                            <p class="text-gray-600">Gerencie todos os processos em um só lugar</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-3xl font-bold text-green-600 mb-2">✅</div>
-                            <h3 class="text-lg font-semibold text-gray-700">Organização</h3>
-                            <p class="text-gray-600">Mantenha seus dados organizados e acessíveis</p>
-                        </div>
-                    </div>
-                </div>
+                <!-- Conteúdo do dashboard abaixo do relatório foi removido conforme solicitado -->
             </div>
+
+            <!-- Seção de filtros e gráficos do dashboard removida -->
 
             <!-- Add Record Page -->
             <div id="addRecordPage" class="page-content hidden">
@@ -358,7 +316,7 @@
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entrada</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Situação</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assunto</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                        <th id="actionsHeader" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody id="allRecordsBody" class="bg-white divide-y divide-gray-200">
@@ -426,6 +384,14 @@
                 <!-- Status Message -->
                 <div id="userManagementMessage" class="hidden mt-4 p-4 rounded-lg"></div>
             </div>
+
+            <!-- Settings Page (Admin Only) -->
+            <div id="settingsPage" class="page-content hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Configurações</h2>
+                    <p class="text-gray-600">Área de configurações do sistema (apenas Administradores).</p>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -489,6 +455,7 @@
         const recordsPerPage = 20;
         let allRecords = [];
         let filteredRecords = [];
+        let drilldownFilter = null;
         
         // Variáveis de controle de usuário
         let currentUser = {
@@ -505,32 +472,13 @@
             'SAJ/ATTUS': '2020.01.00000000000'
         };
 
-        // Função para aplicar máscara
+        // Função para aplicar máscara (apenas como placeholder ilustrativo)
+        // Permite entrada livre do usuário, mas mostra a máscara como referência
         function applyMask(inputElement, mask) {
             if (!inputElement || !mask) return;
-
+            // Define o placeholder apenas como referência visual
             inputElement.placeholder = mask;
-            let current = inputElement.value;
-            let formatted = '';
-            let maskCharIndex = 0;
-            let valueCharIndex = 0;
-
-            while (maskCharIndex < mask.length && valueCharIndex < current.length) {
-                if (mask[maskCharIndex] === '0') {
-                    if (/\d/.test(current[valueCharIndex])) {
-                        formatted += current[valueCharIndex];
-                        valueCharIndex++;
-                    }
-                    maskCharIndex++;
-                } else {
-                    formatted += mask[maskCharIndex];
-                    if (mask[maskCharIndex] === current[valueCharIndex]) {
-                        valueCharIndex++;
-                    }
-                    maskCharIndex++;
-                }
-            }
-            inputElement.value = formatted;
+            // Não modifica o valor inserido pelo usuário - permite entrada livre
         }
 
         // Função para atualizar máscara do PAE/SAJ
@@ -556,7 +504,17 @@
             setupEventListeners();
             setupUserManagementListeners();
             showPage('dashboard');
+            // setupDashboardControls removido: filtros/gráficos excluídos do Dashboard
+            
+            // Por padrão, ocultar funcionalidades de admin até que o perfil seja carregado
+            hideAdminFeatures();
+            
+            // Ajustar layout da tabela (coluna Ações) conforme permissões padrão (não admin)
+            if (typeof updateRecordsTableLayoutForPermissions === 'function') {
+                updateRecordsTableLayoutForPermissions();
+            }
         });
+        // Dashboard charts e filtros removidos
 
         // Configurar event listeners para gerenciamento de usuários
         function setupUserManagementListeners() {
@@ -666,6 +624,8 @@
             document.getElementById('navAddRecord').addEventListener('click', () => showPage('addRecord'));
             document.getElementById('navViewRecords').addEventListener('click', () => showPage('viewRecords'));
             document.getElementById('navUserManagement').addEventListener('click', () => showPage('userManagement'));
+            const navSettingsEl = document.getElementById('navSettings');
+            if (navSettingsEl) navSettingsEl.addEventListener('click', () => showPage('settings'));
 
             // Sidebar mobile
             document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
@@ -696,6 +656,13 @@
 
         // Mostrar página específica
         function showPage(pageName) {
+            // Verificar permissões para páginas restritas
+            const restrictedPages = ['addRecord', 'userManagement', 'settings'];
+            if (restrictedPages.includes(pageName) && !(currentUser && currentUser.isAdmin)) {
+                showAlert('Acesso restrito a administradores', 'warning', 'Acesso Negado');
+                pageName = 'dashboard'; // Redirecionar para o dashboard
+            }
+
             // Esconder todas as páginas
             document.querySelectorAll('.page-content').forEach(page => {
                 page.classList.add('hidden');
@@ -705,6 +672,12 @@
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('bg-primary', 'text-white');
             });
+
+            // Adicionar classe ativa ao item de navegação correspondente
+            const navItem = document.getElementById('nav' + pageName.charAt(0).toUpperCase() + pageName.slice(1));
+            if (navItem) {
+                navItem.classList.add('bg-primary', 'text-white');
+            }
 
             // Mostrar página selecionada
             const targetPage = document.getElementById(pageName + 'Page');
@@ -717,7 +690,8 @@
                 dashboard: 'Dashboard',
                 addRecord: 'Novo Registro',
                 viewRecords: 'Todos os Registros',
-                userManagement: 'Gerenciamento de Usuários'
+                userManagement: 'Gerenciamento de Usuários',
+                settings: 'Configurações'
             };
             document.getElementById('pageTitle').textContent = titles[pageName];
 
@@ -740,6 +714,11 @@
             if (pageName === 'dashboard') {
                 loadDashboardData();
             } else if (pageName === 'addRecord') {
+                if (!currentUser.isAdmin) {
+                    showPage('dashboard');
+                    alert('Acesso negado. Apenas administradores podem adicionar/editar registros.');
+                    return;
+                }
                 // Carregar dropdowns para o formulário
                 if (!dropdownData.sistemas || dropdownData.sistemas.length === 0) {
                     google.script.run
@@ -770,6 +749,12 @@
                     showPage('dashboard');
                     alert('Acesso negado. Apenas administradores podem acessar esta página.');
                 }
+            } else if (pageName === 'settings') {
+                if (!currentUser.isAdmin) {
+                    showPage('dashboard');
+                    alert('Acesso negado. Apenas administradores podem acessar Configurações.');
+                    return;
+                }
             }
         }
 
@@ -786,81 +771,8 @@
                 .withSuccessHandler(fillUserInfo)
                 .withFailureHandler(handleError)
                 .getUsuarioLogado();
-
-            // Carregar estatísticas do dashboard
-            loadDashboardStats();
         }
-
-        // Carregar estatísticas do dashboard
-        function loadDashboardStats() {
-            // Simular dados por enquanto - em uma implementação futura, buscar do backend
-            document.getElementById('totalRecords').textContent = '0';
-            document.getElementById('statusAnalisado').textContent = '0';
-            document.getElementById('recentRecords').textContent = '0';
-
-            // Buscar dados reais dos registros para calcular estatísticas
-            google.script.run
-                .withSuccessHandler(updateDashboardStats)
-                .withFailureHandler(handleError)
-                .getRecentRecords();
-        }
-
-        // Atualizar estatísticas do dashboard
-        function updateDashboardStats(records) {
-            // Para o dashboard, vamos buscar TODOS os registros para estatísticas corretas
-            google.script.run
-                .withSuccessHandler(allRecords => {
-                    if (allRecords && allRecords.length > 0) {
-                        document.getElementById('totalRecords').textContent = allRecords.length;
-                        
-                        // Contar registros com situação "Conforme" (como exemplo de "analisado")
-                        const conformes = allRecords.filter(record => record.situacao === 'Conforme').length;
-                        document.getElementById('statusAnalisado').textContent = conformes;
-
-                        // Contar registros dos últimos 30 dias
-                        const hoje = new Date();
-                        const trintaDiasAtras = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
-                        
-                        const recentes = allRecords.filter(record => {
-                            if (record.entrada) {
-                                // Tentar converter a data
-                                let dataEntrada;
-                                if (record.entrada.includes('/')) {
-                                    const partes = record.entrada.split('/');
-                                    dataEntrada = new Date(partes[2], partes[1] - 1, partes[0]);
-                                } else {
-                                    dataEntrada = new Date(record.entrada);
-                                }
-                                return dataEntrada >= trintaDiasAtras;
-                            }
-                            return false;
-                        }).length;
-                        
-                        document.getElementById('recentRecords').textContent = recentes;
-                    } else {
-                        // Se não há registros, usar os dados dos registros recentes
-                        if (records && records.length > 0) {
-                            document.getElementById('totalRecords').textContent = records.length + '+';
-                            
-                            const conformes = records.filter(record => record.situacao === 'Conforme').length;
-                            document.getElementById('statusAnalisado').textContent = conformes;
-                            document.getElementById('recentRecords').textContent = records.length;
-                        }
-                    }
-                })
-                .withFailureHandler(error => {
-                    console.error('Erro ao buscar estatísticas:', error);
-                    // Fallback para registros recentes
-                    if (records && records.length > 0) {
-                        document.getElementById('totalRecords').textContent = records.length + '+';
-                        
-                        const conformes = records.filter(record => record.situacao === 'Conforme').length;
-                        document.getElementById('statusAnalisado').textContent = conformes;
-                        document.getElementById('recentRecords').textContent = records.length;
-                    }
-                })
-                .getAllRecords();
-        }
+        // Funções de estatística do dashboard removidas
 
         // Popular dropdowns iniciais
         function populateInitialDropdowns(data) {
@@ -946,30 +858,70 @@
             applyAccessControls();
         }
 
-        // Função de compatibilidade
-        function fillUserName(userName) {
-            fillUserInfo(userName);
-        }
-
-        // Aplicar controles de acesso baseados no perfil do usuário
+        // Função para aplicar controles de acesso
         function applyAccessControls() {
-            console.log('Aplicando controles de acesso para:', currentUser.perfil);
+            const isAdmin = currentUser && currentUser.isAdmin === true;
+            const adminMenuItems = [
+                'navAddRecord',
+                'navUserManagement',
+                'navSettings'
+            ];
             
-            // Por enquanto, todos os usuários têm acesso completo
-            // Futuramente implementaremos as restrições específicas
+            // Atualizar links de menu restritos
+            adminMenuItems.forEach(menuItemId => {
+                const menuItem = document.getElementById(menuItemId);
+                if (menuItem) {
+                    if (isAdmin) {
+                        menuItem.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                        menuItem.title = '';
+                        menuItem.addEventListener('click', function(e) {
+                            if (this.classList.contains('pointer-events-none')) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return false;
+                            }
+                        });
+                    } else {
+                        menuItem.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                        menuItem.title = 'Acesso restrito a administradores';
+                        menuItem.addEventListener('click', function(e) {
+                            if (this.classList.contains('pointer-events-none')) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                showAlert('Acesso restrito a administradores', 'warning', 'Acesso Negado');
+                                return false;
+                            }
+                        });
+                    }
+                }
+            });
             
-            if (currentUser.isAdmin) {
+            // Atualizar itens de menu pai
+            const adminMenuParents = ['navAdminPanel', 'navSettingsPanel'];
+            adminMenuParents.forEach(parentId => {
+                const parent = document.getElementById(parentId);
+                if (parent) {
+                    if (isAdmin) {
+                        parent.classList.remove('hidden');
+                    } else {
+                        parent.classList.add('hidden');
+                    }
+                }
+            });
+            
+            if (isAdmin) {
                 console.log('Usuário é administrador - acesso completo');
-                // Administradores têm acesso total
                 showAdminFeatures();
             } else {
-                console.log('Usuário comum - acesso padrão');
-                // Usuários comuns têm acesso limitado (a ser implementado)
+                console.log('Usuário é usuário comum - acesso limitado');
                 hideAdminFeatures();
             }
         }
 
-        // Mostrar funcionalidades de administrador
+        // Função de compatibilidade
+        function fillUserName(userName) {
+            fillUserInfo(userName);
+        }
         function showAdminFeatures() {
             console.log('Funcionalidades de administrador habilitadas');
             // Mostrar menu de gerenciamento de usuários
@@ -977,6 +929,18 @@
             if (adminPanel) {
                 adminPanel.classList.remove('hidden');
             }
+            const settingsPanel = document.getElementById('navSettingsPanel');
+            if (settingsPanel) {
+                settingsPanel.classList.remove('hidden');
+            }
+            const addRecordLink = document.getElementById('navAddRecord');
+            if (addRecordLink) {
+                addRecordLink.classList.remove('hidden');
+            }
+            // Mostrar cabeçalho de Ações
+            const actionsHeader = document.getElementById('actionsHeader');
+            if (actionsHeader) actionsHeader.style.display = '';
+            updateRecordsTableLayoutForPermissions();
         }
 
         // Ocultar funcionalidades de administrador
@@ -986,6 +950,33 @@
             const adminPanel = document.getElementById('navAdminPanel');
             if (adminPanel) {
                 adminPanel.classList.add('hidden');
+            }
+            const settingsPanel = document.getElementById('navSettingsPanel');
+            if (settingsPanel) {
+                settingsPanel.classList.add('hidden');
+            }
+            const addRecordLink = document.getElementById('navAddRecord');
+            if (addRecordLink) {
+                addRecordLink.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                addRecordLink.title = 'Acesso restrito a administradores';
+            }
+            // Ocultar cabeçalho de Ações
+            const actionsHeader = document.getElementById('actionsHeader');
+            if (actionsHeader) actionsHeader.style.display = 'none';
+            updateRecordsTableLayoutForPermissions();
+        }
+
+        // Ajustar layout da tabela de registros conforme permissões
+        function updateRecordsTableLayoutForPermissions() {
+            const isAdmin = !!currentUser.isAdmin;
+            const theadActions = document.getElementById('actionsHeader');
+            if (theadActions) theadActions.style.display = isAdmin ? '' : 'none';
+            const tbody = document.getElementById('allRecordsBody');
+            if (tbody) {
+                // Atualizar colspans de linhas de estado (carregando/sem registros)
+                tbody.querySelectorAll('td[colspan]').forEach(td => {
+                    td.colSpan = isAdmin ? 7 : 6;
+                });
             }
         }
 
@@ -1082,6 +1073,11 @@
         // Lidar com envio do formulário
         function handleFormSubmit(event) {
             event.preventDefault();
+
+            if (!currentUser.isAdmin) {
+                alert('Acesso negado. Apenas administradores podem salvar registros.');
+                return;
+            }
 
             if (isSubmitting) return;
 
@@ -1259,15 +1255,19 @@
         function loadAllRecords() {
             // Mostrar indicador de carregamento
             const tbody = document.getElementById('allRecordsBody');
-            tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">Carregando todos os registros...</td></tr>';
+            const colSpan = currentUser && currentUser.isAdmin ? 7 : 6;
+            tbody.innerHTML = `<tr><td colspan="${colSpan}" class="px-6 py-8 text-center text-gray-500">Carregando todos os registros...</td></tr>`;
             
             // Usar a função específica para buscar TODOS os registros
             google.script.run
                 .withSuccessHandler(data => {
                     console.log('Todos os registros carregados:', data.length);
                     allRecords = data;
-                    filteredRecords = data;
-                    displayAllRecords();
+                    // Se existir um drill-down pendente, aplicar sobre os registros carregados
+                    if (!applyDrilldownFilter()) {
+                        filteredRecords = data;
+                        displayAllRecords();
+                    }
                 })
                 .withFailureHandler(error => {
                     console.error('Erro ao carregar todos os registros:', error);
@@ -1276,12 +1276,51 @@
                 .getAllRecords();
         }
 
+        // Aplicar filtro de drill-down (definido a partir do dashboard)
+        function applyDrilldownFilter() {
+            if (!drilldownFilter) return false;
+            const { ugOrigem, situacao, start, end } = drilldownFilter;
+
+            let startDate = null, endDate = null;
+            if (start && end) {
+                startDate = new Date(start);
+                endDate = new Date(end);
+                if (!isNaN(endDate.getTime())) endDate.setHours(23,59,59,999);
+            }
+
+            filteredRecords = allRecords.filter(r => {
+                let ok = true;
+                if (ugOrigem) ok = ok && (r.ugOrigem === ugOrigem);
+                if (situacao) ok = ok && (r.situacao === situacao);
+                if (startDate && endDate) {
+                    let ent = r.entrada;
+                    if (!ent) return false;
+                    let d = null;
+                    if (typeof ent === 'string' && ent.indexOf('/') !== -1) {
+                        const p = ent.split('/');
+                        if (p.length === 3) d = new Date(parseInt(p[2],10), parseInt(p[1],10)-1, parseInt(p[0],10));
+                    } else {
+                        d = new Date(ent);
+                    }
+                    if (!d || isNaN(d.getTime())) return false;
+                    ok = ok && d >= startDate && d <= endDate;
+                }
+                return ok;
+            });
+
+            currentPage = 1;
+            displayAllRecords();
+            drilldownFilter = null; // consumir o filtro
+            return true;
+        }
+
         // Exibir todos os registros (com paginação e filtros)
         function displayAllRecords() {
             const tbody = document.getElementById('allRecordsBody');
 
             if (!filteredRecords || filteredRecords.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">Nenhum registro encontrado</td></tr>';
+                const colSpan = currentUser && currentUser.isAdmin ? 7 : 6;
+                tbody.innerHTML = `<tr><td colspan="${colSpan}" class="px-6 py-8 text-center text-gray-500">Nenhum registro encontrado</td></tr>`;
                 updatePagination();
                 return;
             }
@@ -1312,14 +1351,12 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${record.assunto || ''}</td>
+                    ${currentUser.isAdmin ? `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button onclick="editRecord(${realIndex})" class="text-primary hover:text-blue-700 mr-3 px-2 py-1 rounded border border-primary hover:bg-primary hover:text-white transition-colors">
-                            Editar
-                        </button>
-                        <button onclick="deleteRecord(${realIndex}, '${record.numPAESAJ}', '${record.interessado}')" class="text-red-600 hover:text-red-800 px-2 py-1 rounded border border-red-600 hover:bg-red-600 hover:text-white transition-colors">
-                            Excluir
-                        </button>
+                        <button onclick="editRecord(${realIndex})" class="text-primary hover:text-blue-700 mr-3 px-2 py-1 rounded border border-primary hover:bg-primary hover:text-white transition-colors">Editar</button>
+                        <button onclick="deleteRecord(${realIndex}, '${record.numPAESAJ}', '${record.interessado}')" class="text-red-600 hover:text-red-800 px-2 py-1 rounded border border-red-600 hover:bg-red-600 hover:text-white transition-colors">Excluir</button>
                     </td>
+                    ` : ''}
                 `;
 
                 tbody.appendChild(row);
@@ -1388,9 +1425,14 @@
 
         // Função para editar registro
         function editRecord(index) {
+            if (!currentUser.isAdmin) {
+                showAlert('Apenas administradores podem editar registros.', 'error', 'Acesso Negado');
+                showPage('dashboard');
+                return;
+            }
             const record = filteredRecords[index];
             if (!record) {
-                alert('Registro não encontrado!');
+                showAlert('Registro não encontrado!', 'error', 'Erro');
                 return;
             }
 
@@ -1454,28 +1496,67 @@
 
         // Função para excluir registro
         function deleteRecord(index, numPAESAJ, interessado) {
-            const confirmMessage = `Tem certeza que deseja excluir o registro?\n\nNúmero: ${numPAESAJ}\nInteressado: ${interessado}`;
-            
-            if (confirm(confirmMessage)) {
-                // Calcular a linha real na planilha
-                const realRowIndex = allRecords.length - index + 1; // +1 porque linha 1 é cabeçalho
-                
-                // Chamar função do backend para excluir
-                google.script.run
-                    .withSuccessHandler(result => {
-                        if (result.status === 'success') {
-                            alert('Registro excluído com sucesso!');
-                            // Recarregar a lista de registros
-                            loadAllRecords();
-                        } else {
-                            alert('Erro ao excluir registro: ' + result.message);
-                        }
-                    })
-                    .withFailureHandler(error => {
-                        alert('Erro ao excluir registro: ' + error.toString());
-                    })
-                    .deleteRecord(realRowIndex);
+            if (!currentUser.isAdmin) {
+                showAlert('Apenas administradores podem excluir registros.', 'error', 'Acesso Negado');
+                showPage('dashboard');
+                return;
             }
+
+            // Usar o modal personalizado para confirmação
+            showAlert(
+                `Tem certeza que deseja excluir o registro ${numPAESAJ} - ${interessado}?`,
+                'warning',
+                'Confirmar Exclusão'
+            );
+            
+            // Substituir o botão de confirmação
+            const alertButton = document.getElementById('alertButton');
+            const originalText = alertButton.textContent;
+            alertButton.textContent = 'Sim, excluir';
+            alertButton.className = 'w-full px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500';
+            
+            // Remover listeners antigos para evitar duplicação
+            const newButton = alertButton.cloneNode(true);
+            alertButton.parentNode.replaceChild(newButton, alertButton);
+            
+            // Adicionar novo listener
+            newButton.onclick = function() {
+                document.getElementById('alertModal').classList.add('hidden');
+                performDelete(index);
+            };
+            
+            // Adicionar botão de cancelar
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = 'Cancelar';
+            cancelButton.className = 'mt-2 w-full px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500';
+            cancelButton.onclick = function() {
+                document.getElementById('alertModal').classList.add('hidden');
+            };
+            
+            const buttonsContainer = document.querySelector('#alertModal .p-6');
+            buttonsContainer.appendChild(cancelButton);
+            
+            return;
+        }
+        
+        // Função para executar a exclusão após confirmação
+        function performDelete(index) {
+            showLoading(true);
+            // Calcular a linha real na planilha
+            const realRowIndex = allRecords.length - index + 1; // +1 porque linha 1 é cabeçalho
+            
+            // Chamar função do backend para excluir
+            google.script.run
+                .withSuccessHandler(result => {
+                    showLoading(false);
+                    showStatusMessage('Registro excluído com sucesso!', 'success');
+                    loadAllRecords();
+                })
+                .withFailureHandler(error => {
+                    showLoading(false);
+                    showAlert('Erro ao excluir registro: ' + error.message, 'error', 'Erro');
+                })
+                .deleteRecord(realRowIndex);
         }
 
         // === GERENCIAMENTO DE USUÁRIOS ===
@@ -1554,33 +1635,65 @@
                     document.getElementById('userModal').classList.remove('hidden');
                 })
                 .withFailureHandler(error => {
-                    alert('Erro ao carregar dados do usuário: ' + error);
+                    showAlert('Erro ao carregar dados do usuário: ' + error, 'error', 'Erro');
                 })
                 .getUserByRow(rowIndex);
         }
 
         // Excluir usuário
         function deleteUser(rowIndex, email) {
-            if (email === currentUser.email) {
-                alert('Você não pode excluir seu próprio usuário!');
-                return;
-            }
-
-            if (confirm(`Tem certeza que deseja excluir o usuário ${email}?`)) {
-                google.script.run
-                    .withSuccessHandler(result => {
-                        if (result.status === 'success') {
-                            showUserMessage(result.message, 'success');
-                            loadUsersData();
-                        } else {
-                            showUserMessage(result.message, 'error');
-                        }
-                    })
-                    .withFailureHandler(error => {
-                        showUserMessage('Erro ao excluir usuário: ' + error, 'error');
-                    })
-                    .deleteUser(rowIndex);
-            }
+            // Usar o modal personalizado para confirmação
+            showAlert(
+                `Tem certeza que deseja excluir o usuário ${email}?`,
+                'warning',
+                'Confirmar Exclusão de Usuário'
+            );
+            
+            // Substituir o botão de confirmação
+            const alertButton = document.getElementById('alertButton');
+            const originalText = alertButton.textContent;
+            alertButton.textContent = 'Sim, excluir';
+            alertButton.className = 'w-full px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500';
+            
+            // Remover listeners antigos para evitar duplicação
+            const newButton = alertButton.cloneNode(true);
+            alertButton.parentNode.replaceChild(newButton, alertButton);
+            
+            // Adicionar novo listener
+            newButton.onclick = function() {
+                document.getElementById('alertModal').classList.add('hidden');
+                performUserDelete(rowIndex, email);
+            };
+            
+            // Adicionar botão de cancelar
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = 'Cancelar';
+            cancelButton.className = 'mt-2 w-full px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500';
+            cancelButton.onclick = function() {
+                document.getElementById('alertModal').classList.add('hidden');
+            };
+            
+            const buttonsContainer = document.querySelector('#alertModal .p-6');
+            buttonsContainer.appendChild(cancelButton);
+            
+            return;
+        }
+        
+        // Função para executar a exclusão de usuário após confirmação
+        function performUserDelete(rowIndex, email) {
+            google.script.run
+                .withSuccessHandler(result => {
+                    if (result.status === 'success') {
+                        showUserMessage(result.message, 'success');
+                        loadUsersData();
+                    } else {
+                        showUserMessage(result.message, 'error');
+                    }
+                })
+                .withFailureHandler(error => {
+                    showUserMessage('Erro ao excluir usuário: ' + error, 'error');
+                })
+                .deleteUser(rowIndex);
         }
 
         // Fechar modal de usuário
@@ -1606,6 +1719,90 @@
             console.error('Erro:', error);
             showStatusMessage('Erro ao carregar dados: ' + error.toString(), 'error');
         }
+        // Modal de Alerta Personalizado
+        function showAlert(message, type = 'info', title = 'Atenção') {
+            const alertModal = document.getElementById('alertModal');
+            const alertTitle = document.getElementById('alertTitle');
+            const alertMessage = document.getElementById('alertMessage');
+            const alertIcon = document.getElementById('alertIcon');
+            const alertButton = document.getElementById('alertButton');
+            
+            // Configurar cores e ícones com base no tipo
+            let bgColor = 'bg-blue-100';
+            let textColor = 'text-blue-700';
+            let buttonColor = 'bg-blue-600 hover:bg-blue-700';
+            let icon = 'ℹ️';
+            
+            switch(type) {
+                case 'success':
+                    bgColor = 'bg-green-100';
+                    textColor = 'text-green-700';
+                    buttonColor = 'bg-green-600 hover:bg-green-700';
+                    icon = '✅';
+                    break;
+                case 'warning':
+                    bgColor = 'bg-yellow-100';
+                    textColor = 'text-yellow-700';
+                    buttonColor = 'bg-yellow-600 hover:bg-yellow-700';
+                    icon = '⚠️';
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-100';
+                    textColor = 'text-red-700';
+                    buttonColor = 'bg-red-600 hover:bg-red-700';
+                    icon = '❌';
+                    break;
+            }
+            
+            // Atualizar o conteúdo do modal
+            alertTitle.textContent = title;
+            alertMessage.textContent = message;
+            alertIcon.textContent = icon;
+            alertIcon.className = `text-4xl mb-4 ${textColor}`;
+            alertButton.className = `w-full px-4 py-2 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 ${buttonColor}`;
+            
+            // Mostrar o modal
+            alertModal.classList.remove('hidden');
+            
+            // Fechar o modal ao clicar no botão
+            alertButton.onclick = function() {
+                alertModal.classList.add('hidden');
+            };
+            
+            // Fechar ao pressionar ESC
+            document.onkeydown = function(evt) {
+                evt = evt || window.event;
+                if (evt.key === 'Escape') {
+                    alertModal.classList.add('hidden');
+                }
+            };
+            
+            // Fechar ao clicar fora do modal
+            alertModal.onclick = function(e) {
+                if (e.target === alertModal) {
+                    alertModal.classList.add('hidden');
+                }
+            };
+        }
+        
+        // Substituir alert() padrão
+        window.alert = function(message) {
+            showAlert(message, 'info', 'Atenção');
+        };
     </script>
+    
+    <!-- Modal de Alerta Personalizado -->
+    <div id="alertModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-auto transform transition-all">
+            <div class="p-6 text-center">
+                <div id="alertIcon" class="text-4xl mb-4">ℹ️</div>
+                <h3 id="alertTitle" class="text-xl font-semibold text-gray-900 mb-2">Atenção</h3>
+                <p id="alertMessage" class="text-gray-700 mb-6"></p>
+                <button id="alertButton" class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Entendi
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
